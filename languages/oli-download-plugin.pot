@@ -2,7 +2,7 @@
 # This file is distributed under the GNU General Public License v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Oli Download Plugin 0.1.1\n"
+"Project-Id-Version: Oli Download Plugin 0.1.2\n"
 "Report-Msgid-Bugs-To: https://github.com/olivierbigras/Oli-Download-Plugin/issues\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -112,7 +112,27 @@ msgid "Settings saved."
 msgstr ""
 
 #: includes/class-oli-dlp-admin.php
-msgid "Download installed plugins and themes as ZIP files from the Plugins and Themes screens. Uploads and other wp-content data are never included."
+msgid "Download installed plugins and themes as ZIP files from the Plugins and Themes screens. A Download link also appears on users, posts, pages, comments, and custom post types (CSV)."
+msgstr ""
+
+#: includes/class-oli-dlp-admin.php
+msgid "Select at least one plugin to download."
+msgstr ""
+
+#: includes/class-oli-dlp-admin.php
+msgid "Upload Multiple Plugins"
+msgstr ""
+
+#: includes/class-oli-dlp-admin.php
+msgid "Custom ZIP exclusions"
+msgstr ""
+
+#: includes/class-oli-dlp-admin.php
+msgid "One pattern per line (for example vendor or *.bak). Added to the default exclusions and the oli_dlp_excluded_patterns filter."
+msgstr ""
+
+#: includes/class-oli-dlp-admin.php
+msgid "Install several plugin ZIP files in one go. Only valid WordPress plugin archives are accepted."
 msgstr ""
 
 #: includes/class-oli-dlp-admin.php
@@ -145,4 +165,44 @@ msgstr ""
 
 #: includes/class-oli-dlp-admin.php
 msgid "GitHub"
+msgstr ""
+
+#: includes/class-oli-dlp-upload.php
+msgid "%d plugin(s) installed."
+msgstr ""
+
+#: includes/class-oli-dlp-upload.php
+msgid "Some archives could not be installed. Use a valid WordPress plugin ZIP."
+msgstr ""
+
+#: includes/class-oli-dlp-upload.php
+msgid "Plugin ZIP files"
+msgstr ""
+
+#: includes/class-oli-dlp-upload.php
+msgid "Install plugins"
+msgstr ""
+
+#: includes/class-oli-dlp-upload.php
+msgid "You do not have permission to install plugins."
+msgstr ""
+
+#: includes/class-oli-dlp-export.php
+msgid "You do not have permission to download users."
+msgstr ""
+
+#: includes/class-oli-dlp-export.php
+msgid "You do not have permission to download this item."
+msgstr ""
+
+#: includes/class-oli-dlp-export.php
+msgid "You do not have permission to download comments."
+msgstr ""
+
+#: includes/class-oli-dlp-export.php
+msgid "You do not have permission to download terms."
+msgstr ""
+
+#: includes/class-oli-dlp-export.php
+msgid "Failed to create CSV file."
 msgstr ""

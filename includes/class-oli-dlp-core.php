@@ -125,15 +125,17 @@ class Oli_DLP_Core {
 	public static function get_download_url( $type, $slug ) {
 		$base = is_network_admin() ? network_admin_url( 'admin.php' ) : admin_url( 'admin.php' );
 
-		return wp_nonce_url(
+		// Build the URL with a raw nonce. wp_nonce_url() applies esc_html()
+		// which turns & into &amp; and breaks hrefs set from wp_localize_script.
+		return esc_url_raw(
 			add_query_arg(
 				array(
 					'oli_dlp_download' => $slug,
 					'type'             => $type,
+					'_wpnonce'         => wp_create_nonce( 'oli_dlp_download' ),
 				),
 				$base
-			),
-			'oli_dlp_download'
+			)
 		);
 	}
 
@@ -328,13 +330,26 @@ class Oli_DLP_Core {
 		}
 
 		if ( empty( $paths ) ) {
-			wp_die( esc_html__( 'No valid plugins to download.', 'oli-download-plugin' ), '', array( 'response' => 400 ) );
+			$this->redirect_empty_bulk();
 		}
 
 		$filename = sanitize_file_name( 'plugins-' . gmdate( 'Y-m-d-His' ) . '.zip' );
 
 		$zip = new Oli_DLP_Zip();
 		$zip->create_and_stream_multiple( $paths, $filename );
+	}
+
+	/**
+	 * Redirect back to the Plugins screen when the bulk action has no items.
+	 */
+	public function redirect_empty_bulk() {
+		$sendback = wp_get_referer();
+		if ( ! $sendback || false === strpos( $sendback, 'plugins.php' ) ) {
+			$sendback = self_admin_url( 'plugins.php' );
+		}
+
+		wp_safe_redirect( add_query_arg( 'oli_dlp_bulk_empty', '1', $sendback ) );
+		exit;
 	}
 
 	/**

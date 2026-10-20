@@ -114,3 +114,15 @@ oli_dlp_assert(
 	false === Oli_DLP_Validator::is_glob_pattern( '.env' ),
 	'.env is not a glob pattern'
 );
+
+$oli_dlp_custom = Oli_DLP_Validator::sanitize_exclusion_lines( "vendor\n*.bak\n../etc\nbad/path\n\n.cache\n" );
+
+oli_dlp_assert(
+	array( 'vendor', '*.bak', '.cache' ) === $oli_dlp_custom,
+	'Custom exclusion lines are trimmed and path-unsafe rows dropped'
+);
+
+oli_dlp_assert(
+	true === Oli_DLP_Validator::should_exclude( 'akismet/vendor/autoload.php', array_merge( $oli_dlp_defaults, $oli_dlp_custom ) ),
+	'Custom vendor exclusion is honored with defaults'
+);

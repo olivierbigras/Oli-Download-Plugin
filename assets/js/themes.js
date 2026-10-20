@@ -1,5 +1,5 @@
 /**
- * Inject a Download button into the Appearance → Themes details overlay.
+ * Inject Download buttons on Appearance → Themes (cards + details overlay).
  *
  * @package Oli_Download_Plugin
  */
@@ -10,12 +10,21 @@
 		return;
 	}
 
+	var overlayObserver = null;
+
+	function decodeUrl(url) {
+		if (!url || typeof url !== 'string') {
+			return '';
+		}
+		return url.replace(/&amp;/g, '&');
+	}
+
 	function currentSlug() {
 		var $overlay = $('.theme-overlay');
 		var slug = $overlay.find('[data-slug]').first().data('slug');
 
 		if (!slug) {
-			slug = $('.theme.expanded, .theme.focus, .theme[aria-describedby]').first().data('slug');
+			slug = $('.theme.expanded, .theme.focus').first().data('slug');
 		}
 
 		if (!slug && window.location.hash) {
@@ -28,7 +37,38 @@
 		return slug || '';
 	}
 
-	function inject() {
+	function makeButton(slug) {
+		var url = decodeUrl(settings.urls[slug] || '');
+		if (!url) {
+			return $();
+		}
+
+		return $('<a>', {
+			href: url,
+			class: 'button button-primary oli-dlp-download',
+			text: settings.label,
+			'data-slug': slug
+		});
+	}
+
+	function injectCards() {
+		$('.themes .theme').each(function () {
+			var $theme = $(this);
+			var slug = $theme.attr('data-slug');
+			if (!slug || !settings.urls[slug]) {
+				return;
+			}
+
+			var $actions = $theme.children('.theme-actions');
+			if (!$actions.length || $actions.find('.oli-dlp-download').length) {
+				return;
+			}
+
+			makeButton(slug).prependTo($actions);
+		});
+	}
+
+	function injectOverlay() {
 		var $overlay = $('.theme-overlay');
 		if (!$overlay.length) {
 			return;
@@ -44,31 +84,62 @@
 			return;
 		}
 
-		$actions.find('.oli-dlp-download').remove();
+		var $existing = $actions.find('.oli-dlp-download');
+		if ($existing.length) {
+			if ($existing.attr('data-slug') === slug) {
+				return;
+			}
+			$existing.remove();
+		}
 
-		$('<a>', {
-			href: settings.urls[slug],
-			class: 'button oli-dlp-download',
-			text: settings.label
-		}).appendTo($actions);
+		makeButton(slug).appendTo($actions);
 	}
 
+	function withObserverPaused(fn) {
+		if (overlayObserver) {
+			overlayObserver.disconnect();
+		}
+		fn();
+		observeOverlay();
+	}
+
+	function observeOverlay() {
+		if (!window.MutationObserver) {
+			return;
+		}
+
+		var target = document.querySelector('.theme-overlay');
+		if (!target) {
+			return;
+		}
+
+		if (!overlayObserver) {
+			overlayObserver = new MutationObserver(function () {
+				withObserverPaused(injectOverlay);
+			});
+		}
+
+		overlayObserver.observe(target, { childList: true, subtree: true });
+	}
+
+	$(function () {
+		injectCards();
+		injectOverlay();
+		observeOverlay();
+	});
+
 	$(document).on('click', '.theme, .left, .right, .next, .previous', function () {
-		window.setTimeout(inject, 60);
+		window.setTimeout(function () {
+			withObserverPaused(function () {
+				injectCards();
+				injectOverlay();
+			});
+		}, 60);
 	});
 
 	$(window).on('hashchange', function () {
-		window.setTimeout(inject, 60);
+		window.setTimeout(function () {
+			withObserverPaused(injectOverlay);
+		}, 60);
 	});
-
-	if (window.MutationObserver) {
-		var wrap = document.getElementById('wpwrap');
-		if (wrap) {
-			new MutationObserver(function () {
-				inject();
-			}).observe(wrap, { childList: true, subtree: true });
-		}
-	}
-
-	$(inject);
 })(jQuery, window.oliDlpThemes || {});

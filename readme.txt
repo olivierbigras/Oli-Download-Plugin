@@ -5,11 +5,11 @@ Tags: download, plugins, themes, zip, backup
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.1.1
+Stable tag: 0.1.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Download installed plugins, themes, and child themes as ZIP files from the WordPress admin.
+Download installed plugins and themes as ZIP files, export users/posts/comments as CSV, and upload multiple plugins from the WordPress admin.
 
 == Description ==
 
@@ -21,19 +21,20 @@ The plugin is written independently. It is not a fork of "Download Plugin" and d
 
 = What you can download =
 
-* Installed plugins (directory or single-file)
-* Installed themes, including child themes (the child folder only)
-* Several plugins at once as one ZIP via the Plugins screen bulk action
+* Installed plugins (directory or single-file) as ZIP, including a bulk Download action
+* Installed themes, including child themes (the child folder only), from each theme card and the details overlay
+* Several plugin ZIPs uploaded and installed at once
 * Must-use plugins and drop-ins, when you enable those options
-* The same actions from Multisite network admin
+* Users, posts, pages, custom post types, comments, and terms as CSV (row and bulk Download)
+* The same ZIP actions from Multisite network admin
 
 = What is never included =
 
-* `wp-content/uploads` and other media
-* The WordPress database
-* Posts, users, comments, or custom post types
+* `wp-content/uploads` and other media files
+* The WordPress database as a dump
+* User password hashes
 * Arbitrary paths outside the validated plugin / theme / mu-plugin / drop-in lists
-* Symbolic links (including broken links and links that point outside the source)
+* Symbolic links (including broken links and links that point outside the source or `open_basedir`)
 
 = Security =
 
@@ -50,20 +51,20 @@ The plugin is written independently. It is not a fork of "Download Plugin" and d
 = ZIP details =
 
 * ZipArchive is used when available, with PclZip as a fallback
-* Default exclusions: `.git`, `node_modules`, `.DS_Store`, `.env`, `.svn`, `.hg`, `.idea`, `.vscode`, `*.log`, `*.sql` (filterable with `oli_dlp_excluded_patterns`; globs use `fnmatch`)
+* Default exclusions: `.git`, `node_modules`, `.DS_Store`, `.env`, `.svn`, `.hg`, `.idea`, `.vscode`, `*.log`, `*.sql` (plus optional settings lines; filterable with `oli_dlp_excluded_patterns`; globs use `fnmatch`)
 * Filenames use `slug-version.zip`
 * Large plugins raise the admin memory limit and allow up to 300 seconds when `set_time_limit()` is permitted
 
 = Filters =
 
-`oli_dlp_excluded_patterns` — array of path-segment names or glob patterns to omit from generated archives.
+`oli_dlp_excluded_patterns` — array of path-segment names or glob patterns to omit from generated archives. Custom lines from the Download screen are merged in first.
 
 == Installation ==
 
 1. Upload the `oli-download-plugin` folder to `/wp-content/plugins/`, or install the ZIP from Plugins → Add New → Upload.
 2. Activate the plugin (Network Activate on Multisite; `Network: true` is intentional).
 3. Open Plugins and click **Download** under a plugin name.
-4. Optional: Settings → Oli Download Plugin (or Network Settings on Multisite) to allow MU-plugin and drop-in downloads.
+4. Optional: open the **Download** menu to allow MU-plugin and drop-in downloads, edit ZIP exclusions, or upload several plugin ZIPs.
 
 == Frequently Asked Questions ==
 
@@ -101,6 +102,12 @@ Download slugs must match `[A-Za-z0-9._-]`. Paths, `..`, and other characters ar
 
 == Changelog ==
 
+= 0.1.2 =
+* Fix theme overlay freeze and encoded nonce URLs.
+* Ignore open_basedir-escaping symlinks without fatals.
+* Empty bulk Download redirects with a notice.
+* Custom exclusions, multi-plugin upload, CSV downloads, Download menu.
+
 = 0.1.1 =
 * Skip symbolic links (broken or escaping the source) when building ZIPs; catch addFile failures.
 * Create temp ZIPs outside the web root with a random name; delete them on shutdown, abort, and wp_die.
@@ -112,6 +119,9 @@ Download slugs must match `[A-Za-z0-9._-]`. Paths, `..`, and other characters ar
 * Initial release.
 
 == Upgrade Notice ==
+
+= 0.1.2 =
+Fixes the Themes screen freeze and open_basedir fatals; adds CSV downloads and multi-plugin upload.
 
 = 0.1.1 =
 Hardens ZIP packing against symbolic links and writes temp archives outside the web root.

@@ -63,13 +63,17 @@ class Oli_DLP_Zip {
 	 */
 	public function get_excluded_patterns() {
 		$patterns = Oli_DLP_Validator::default_excluded_patterns();
+		$custom   = Oli_DLP_Validator::sanitize_exclusion_lines(
+			(string) Oli_DLP_Core::get_option( 'oli_dlp_custom_exclusions', '' )
+		);
+		$patterns = array_values( array_unique( array_merge( $patterns, $custom ) ) );
 
 		/**
 		 * Filter path-segment names and globs excluded from generated ZIP archives.
 		 *
 		 * @since 0.1.0
 		 *
-		 * @param string[] $patterns Default: .git, node_modules, .DS_Store, .env, VCS/IDE dirs, *.log, *.sql.
+		 * @param string[] $patterns Defaults plus settings, before this filter.
 		 */
 		$filtered = apply_filters( 'oli_dlp_excluded_patterns', $patterns );
 

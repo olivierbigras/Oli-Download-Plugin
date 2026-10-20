@@ -2,6 +2,23 @@
 
 All notable changes to Oli Download Plugin are documented here.
 
+## 0.1.2 — 2026-10-20
+
+### Fixed
+
+- Theme details overlay no longer freezes `themes.php`. The MutationObserver is paused while injecting the button, the button is added only once, and download URLs are built with `esc_url_raw()` so `&amp;` cannot break the nonce.
+- A Download button is prepended on each theme card (`button-primary`), matching the original plugin’s placement.
+- Symbolic links pointing outside PHP `open_basedir` (for example `/etc/hostname`) are detected with `is_link()` first and skipped. `realpath()`, `file_exists()`, `is_file()`, and `is_dir()` are guarded so an `open_basedir` warning cannot become a fatal 500.
+- Bulk Download with no plugins selected redirects to `plugins.php` with an admin notice instead of a 400 page.
+
+### Added
+
+- Custom ZIP exclusion patterns on the Download settings screen (one per line, sanitized), in addition to `oli_dlp_excluded_patterns`.
+- Deactivation and uninstall now delete leftover `oli-dlp-*` files from `get_temp_dir()`.
+- Upload Multiple Plugins from Add Plugins and the Download screen.
+- CSV Download row and bulk actions for users, posts, pages, custom post types, comments, and terms (no password hashes).
+- Top-level Download admin menu (`dashicons-media-archive`).
+
 ## 0.1.1 — 2026-10-20
 
 ### Security

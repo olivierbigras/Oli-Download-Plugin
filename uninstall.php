@@ -13,12 +13,31 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
  * Remove options, cron events, and leftover temp files.
  */
 function oli_dlp_uninstall() {
-	delete_option( 'oli_dlp_enable_mu_plugins' );
-	delete_option( 'oli_dlp_enable_dropins' );
-	delete_site_option( 'oli_dlp_enable_mu_plugins' );
-	delete_site_option( 'oli_dlp_enable_dropins' );
+	$oli_dlp_options = array(
+		'oli_dlp_enable_mu_plugins',
+		'oli_dlp_enable_dropins',
+		'oli_dlp_custom_exclusions',
+	);
+
+	foreach ( $oli_dlp_options as $oli_dlp_option ) {
+		delete_option( $oli_dlp_option );
+		delete_site_option( $oli_dlp_option );
+	}
 
 	wp_clear_scheduled_hook( 'oli_dlp_daily_cleanup' );
+
+	if ( function_exists( 'get_temp_dir' ) ) {
+		$oli_dlp_sys       = trailingslashit( get_temp_dir() );
+		$oli_dlp_sys_files = array_merge(
+			(array) glob( $oli_dlp_sys . 'oli-dlp-*.tmp' ),
+			(array) glob( $oli_dlp_sys . 'oli-dlp-*.zip' )
+		);
+		foreach ( $oli_dlp_sys_files as $oli_dlp_tmp ) {
+			if ( is_string( $oli_dlp_tmp ) && is_file( $oli_dlp_tmp ) ) {
+				wp_delete_file( $oli_dlp_tmp );
+			}
+		}
+	}
 
 	$oli_dlp_upload_dir = wp_upload_dir( null, false );
 	if ( empty( $oli_dlp_upload_dir['basedir'] ) ) {

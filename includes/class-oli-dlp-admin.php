@@ -50,6 +50,9 @@ class Oli_DLP_Admin {
 		add_action( 'admin_menu', array( $this, 'register_settings_page' ) );
 		add_action( 'network_admin_menu', array( $this, 'register_network_settings_page' ) );
 		add_action( 'admin_init', array( $this, 'maybe_save_settings' ) );
+		add_action( 'admin_notices', array( $this, 'maybe_bulk_empty_notice' ) );
+		add_action( 'network_admin_notices', array( $this, 'maybe_bulk_empty_notice' ) );
+		add_action( 'admin_notices', array( $this, 'maybe_upload_notice_button' ) );
 
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_theme_script' ) );
 		add_filter( 'plugin_row_meta', array( $this, 'plugin_row_meta' ), 10, 2 );
@@ -150,37 +153,73 @@ class Oli_DLP_Admin {
 			wp_die( esc_html__( 'You do not have permission to download plugins.', 'oli-download-plugin' ), '', array( 'response' => 403 ) );
 		}
 
+		$checked = isset( $_REQUEST['checked'] ) && is_array( $_REQUEST['checked'] ) ? array_map( 'sanitize_text_field', wp_unslash( $_REQUEST['checked'] ) ) : array();
+		if ( empty( $checked ) ) {
+			Oli_DLP_Core::instance()->redirect_empty_bulk();
+		}
+
 		Oli_DLP_Core::instance()->download_bulk_plugins();
 	}
 
 	/**
-	 * Settings page on single-site installs.
+	 * Notice when the bulk Download action ran with nothing selected.
+	 */
+	public function maybe_bulk_empty_notice() {
+		if ( ! isset( $_GET['oli_dlp_bulk_empty'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display-only flag.
+			return;
+		}
+
+		echo '<div class="notice notice-warning is-dismissible"><p>' . esc_html__( 'Select at least one plugin to download.', 'oli-download-plugin' ) . '</p></div>';
+	}
+
+	/**
+	 * “Upload Multiple Plugins” action on the Add Plugins screen.
+	 */
+	public function maybe_upload_notice_button() {
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( ! $screen || 'plugin-install' !== $screen->id ) {
+			return;
+		}
+
+		if ( ! current_user_can( is_multisite() ? 'manage_network_plugins' : 'install_plugins' ) ) {
+			return;
+		}
+
+		$url = add_query_arg( 'page', 'oli-download-plugin', is_network_admin() ? network_admin_url( 'admin.php' ) : admin_url( 'admin.php' ) );
+		echo '<div class="wrap" style="margin:0 0 8px;"><a class="page-title-action" href="' . esc_url( $url ) . '#oli-dlp-upload">' . esc_html__( 'Upload Multiple Plugins', 'oli-download-plugin' ) . '</a></div>';
+	}
+
+	/**
+	 * Settings / Download hub on single-site installs.
 	 */
 	public function register_settings_page() {
 		if ( is_multisite() ) {
 			return;
 		}
 
-		add_options_page(
-			__( 'Oli Download Plugin', 'oli-download-plugin' ),
-			__( 'Oli Download Plugin', 'oli-download-plugin' ),
+		add_menu_page(
+			__( 'Download', 'oli-download-plugin' ),
+			__( 'Download', 'oli-download-plugin' ),
 			'activate_plugins',
 			'oli-download-plugin',
-			array( $this, 'render_settings_page' )
+			array( $this, 'render_settings_page' ),
+			'dashicons-media-archive',
+			99
 		);
 	}
 
 	/**
-	 * Settings page on network admin.
+	 * Settings / Download hub on network admin.
 	 */
 	public function register_network_settings_page() {
-		add_submenu_page(
-			'settings.php',
-			__( 'Oli Download Plugin', 'oli-download-plugin' ),
-			__( 'Oli Download Plugin', 'oli-download-plugin' ),
+		add_menu_page(
+			__( 'Download', 'oli-download-plugin' ),
+			__( 'Download', 'oli-download-plugin' ),
 			'manage_network_plugins',
 			'oli-download-plugin',
-			array( $this, 'render_settings_page' )
+			array( $this, 'render_settings_page' ),
+			'dashicons-media-archive',
+			99
 		);
 	}
 
@@ -200,16 +239,22 @@ class Oli_DLP_Admin {
 
 		$enable_mu      = isset( $_POST['oli_dlp_enable_mu_plugins'] ) ? 1 : 0;
 		$enable_dropins = isset( $_POST['oli_dlp_enable_dropins'] ) ? 1 : 0;
+		$exclusions     = '';
+		if ( isset( $_POST['oli_dlp_custom_exclusions'] ) ) {
+			$exclusions = sanitize_textarea_field( wp_unslash( $_POST['oli_dlp_custom_exclusions'] ) );
+		}
+		$clean_lines = Oli_DLP_Validator::sanitize_exclusion_lines( $exclusions );
 
 		Oli_DLP_Core::update_option( 'oli_dlp_enable_mu_plugins', $enable_mu );
 		Oli_DLP_Core::update_option( 'oli_dlp_enable_dropins', $enable_dropins );
+		Oli_DLP_Core::update_option( 'oli_dlp_custom_exclusions', implode( "\n", $clean_lines ) );
 
 		$redirect = add_query_arg(
 			array(
 				'page'            => 'oli-download-plugin',
 				'oli_dlp_updated' => '1',
 			),
-			is_network_admin() ? network_admin_url( 'settings.php' ) : admin_url( 'options-general.php' )
+			is_network_admin() ? network_admin_url( 'admin.php' ) : admin_url( 'admin.php' )
 		);
 
 		wp_safe_redirect( $redirect );
@@ -226,6 +271,7 @@ class Oli_DLP_Admin {
 
 		$enable_mu      = (int) Oli_DLP_Core::get_option( 'oli_dlp_enable_mu_plugins', 0 );
 		$enable_dropins = (int) Oli_DLP_Core::get_option( 'oli_dlp_enable_dropins', 0 );
+		$exclusions     = (string) Oli_DLP_Core::get_option( 'oli_dlp_custom_exclusions', '' );
 		$core           = Oli_DLP_Core::instance();
 
 		if ( isset( $_GET['oli_dlp_updated'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display-only flag after redirect.
@@ -235,7 +281,7 @@ class Oli_DLP_Admin {
 		?>
 		<div class="wrap">
 			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
-			<p><?php esc_html_e( 'Download installed plugins and themes as ZIP files from the Plugins and Themes screens. Uploads and other wp-content data are never included.', 'oli-download-plugin' ); ?></p>
+			<p><?php esc_html_e( 'Download installed plugins and themes as ZIP files from the Plugins and Themes screens. A Download link also appears on users, posts, pages, comments, and custom post types (CSV).', 'oli-download-plugin' ); ?></p>
 
 			<form method="post">
 				<?php wp_nonce_field( 'oli_dlp_save_settings' ); ?>
@@ -259,6 +305,13 @@ class Oli_DLP_Admin {
 							</label>
 						</td>
 					</tr>
+					<tr>
+						<th scope="row"><label for="oli_dlp_custom_exclusions"><?php esc_html_e( 'Custom ZIP exclusions', 'oli-download-plugin' ); ?></label></th>
+						<td>
+							<textarea name="oli_dlp_custom_exclusions" id="oli_dlp_custom_exclusions" rows="6" cols="40" class="large-text code"><?php echo esc_textarea( $exclusions ); ?></textarea>
+							<p class="description"><?php esc_html_e( 'One pattern per line (for example vendor or *.bak). Added to the default exclusions and the oli_dlp_excluded_patterns filter.', 'oli-download-plugin' ); ?></p>
+						</td>
+					</tr>
 				</table>
 				<?php submit_button( __( 'Save settings', 'oli-download-plugin' ) ); ?>
 			</form>
@@ -271,6 +324,12 @@ class Oli_DLP_Admin {
 			<?php if ( $enable_dropins ) : ?>
 				<h2><?php esc_html_e( 'Drop-ins', 'oli-download-plugin' ); ?></h2>
 				<?php $this->render_named_list( $core->list_dropin_names(), 'dropin' ); ?>
+			<?php endif; ?>
+
+			<?php if ( current_user_can( is_multisite() ? 'manage_network_plugins' : 'install_plugins' ) ) : ?>
+				<h2 id="oli-dlp-upload"><?php esc_html_e( 'Upload Multiple Plugins', 'oli-download-plugin' ); ?></h2>
+				<p><?php esc_html_e( 'Install several plugin ZIP files in one go. Only valid WordPress plugin archives are accepted.', 'oli-download-plugin' ); ?></p>
+				<?php Oli_DLP_Upload::render_form(); ?>
 			<?php endif; ?>
 		</div>
 		<?php
@@ -322,6 +381,13 @@ class Oli_DLP_Admin {
 				$urls[ $stylesheet ] = Oli_DLP_Core::get_download_url( 'theme', $stylesheet );
 			}
 		}
+
+		wp_enqueue_style(
+			'oli-dlp-themes',
+			OLI_DLP_PLUGIN_URL . 'assets/css/themes.css',
+			array(),
+			OLI_DLP_VERSION
+		);
 
 		wp_enqueue_script(
 			'oli-dlp-themes',

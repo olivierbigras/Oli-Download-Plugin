@@ -127,6 +127,70 @@ oli_dlp_assert(
 	'Escaping symlink target is not packed under a plugin-relative name'
 );
 
+$oli_dlp_etc = '/etc/hostname';
+if ( file_exists( $oli_dlp_etc ) ) {
+	symlink( $oli_dlp_etc, $oli_dlp_dir . '/outside-etc' );
+	$oli_dlp_etc_info = new SplFileInfo( $oli_dlp_dir . '/outside-etc' );
+
+	oli_dlp_assert(
+		true === Oli_DLP_Validator::path_is_link( $oli_dlp_dir . '/outside-etc' ),
+		'is_link() is used first on a symlink to /etc/hostname'
+	);
+
+	$oli_dlp_handler = static function ( $errno, $errstr ) {
+		unset( $errno );
+		if ( false !== strpos( $errstr, 'open_basedir' ) ) {
+			throw new Error( $errstr );
+		}
+		return false;
+	};
+	set_error_handler( $oli_dlp_handler );
+
+	$oli_dlp_threw = false;
+	try {
+		$oli_dlp_etc_rel = Oli_DLP_Validator::zip_entry_relative_path( $oli_dlp_etc_info, $oli_dlp_dir, 'name' );
+		$oli_dlp_etc_skip = Oli_DLP_Validator::should_skip_source_file( $oli_dlp_etc_info, $oli_dlp_dir );
+		$oli_dlp_etc_pack = Oli_DLP_Validator::collect_zip_entries( $oli_dlp_dir, 'name' );
+	} catch ( Throwable $oli_dlp_error ) {
+		$oli_dlp_threw   = true;
+		$oli_dlp_etc_rel = 'threw';
+		$oli_dlp_etc_skip = false;
+		$oli_dlp_etc_pack = array();
+		unset( $oli_dlp_error );
+	}
+
+	restore_error_handler();
+
+	oli_dlp_assert(
+		false === $oli_dlp_threw,
+		'A symlink to /etc/hostname does not fatal zip helpers'
+	);
+
+	oli_dlp_assert(
+		false === $oli_dlp_etc_rel && true === $oli_dlp_etc_skip,
+		'A symlink to /etc/hostname is ignored without following it'
+	);
+
+	$oli_dlp_etc_packed = false;
+	foreach ( $oli_dlp_etc_pack as $oli_dlp_entry ) {
+		if ( false !== strpos( $oli_dlp_entry['relative'], 'outside-etc' ) || false !== strpos( $oli_dlp_entry['realpath'], 'hostname' ) ) {
+			$oli_dlp_etc_packed = true;
+		}
+	}
+
+	oli_dlp_assert(
+		false === $oli_dlp_etc_packed,
+		'collect_zip_entries does not pack /etc/hostname through a symlink'
+	);
+
+	@unlink( $oli_dlp_dir . '/outside-etc' );
+}
+
+oli_dlp_assert(
+	false === Oli_DLP_Validator::safe_realpath( $oli_dlp_dir . '/broken-link' ),
+	'safe_realpath() returns false for a broken link without throwing'
+);
+
 @unlink( $oli_dlp_dir . '/broken-link' );
 @unlink( $oli_dlp_dir . '/escape.php' );
 @unlink( $oli_dlp_dir . '/includes/class-foo.php' );

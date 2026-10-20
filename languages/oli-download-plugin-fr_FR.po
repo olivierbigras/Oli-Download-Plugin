@@ -2,7 +2,7 @@
 # This file is distributed under the GNU General Public License v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Oli Download Plugin 0.1.1\n"
+"Project-Id-Version: Oli Download Plugin 0.1.2\n"
 "Report-Msgid-Bugs-To: https://github.com/olivierbigras/Oli-Download-Plugin/issues\n"
 "Last-Translator: Olivier Bigras <https://olivierbigras.com/>\n"
 "Language-Team: French\n"
@@ -87,8 +87,23 @@ msgstr "Vous n’avez pas la permission d’accéder à cette page."
 msgid "Settings saved."
 msgstr "Réglages enregistrés."
 
-msgid "Download installed plugins and themes as ZIP files from the Plugins and Themes screens. Uploads and other wp-content data are never included."
-msgstr "Téléchargez les extensions et thèmes installés en fichiers ZIP depuis les écrans Extensions et Thèmes. Le dossier uploads et les autres données de wp-content ne sont jamais inclus."
+msgid "Download installed plugins and themes as ZIP files from the Plugins and Themes screens. A Download link also appears on users, posts, pages, comments, and custom post types (CSV)."
+msgstr "Téléchargez les extensions et thèmes installés en fichiers ZIP depuis les écrans Extensions et Thèmes. Un lien Télécharger apparaît aussi sur les utilisateurs, articles, pages, commentaires et types de contenu (CSV)."
+
+msgid "Select at least one plugin to download."
+msgstr "Sélectionnez au moins une extension à télécharger."
+
+msgid "Upload Multiple Plugins"
+msgstr "Téléverser plusieurs extensions"
+
+msgid "Custom ZIP exclusions"
+msgstr "Exclusions ZIP personnalisées"
+
+msgid "One pattern per line (for example vendor or *.bak). Added to the default exclusions and the oli_dlp_excluded_patterns filter."
+msgstr "Un motif par ligne (par exemple vendor ou *.bak). Ajouté aux exclusions par défaut et au filtre oli_dlp_excluded_patterns."
+
+msgid "Install several plugin ZIP files in one go. Only valid WordPress plugin archives are accepted."
+msgstr "Installez plusieurs archives ZIP d’extensions en une seule fois. Seules les archives d’extensions WordPress valides sont acceptées."
 
 msgid "Must-use plugins"
 msgstr "Extensions indispensables"
@@ -113,3 +128,33 @@ msgstr "Nom"
 
 msgid "GitHub"
 msgstr "GitHub"
+
+msgid "%d plugin(s) installed."
+msgstr "%d extension(s) installée(s)."
+
+msgid "Some archives could not be installed. Use a valid WordPress plugin ZIP."
+msgstr "Certaines archives n’ont pas pu être installées. Utilisez un ZIP d’extension WordPress valide."
+
+msgid "Plugin ZIP files"
+msgstr "Fichiers ZIP d’extensions"
+
+msgid "Install plugins"
+msgstr "Installer les extensions"
+
+msgid "You do not have permission to install plugins."
+msgstr "Vous n’avez pas la permission d’installer des extensions."
+
+msgid "You do not have permission to download users."
+msgstr "Vous n’avez pas la permission de télécharger les utilisateurs."
+
+msgid "You do not have permission to download this item."
+msgstr "Vous n’avez pas la permission de télécharger cet élément."
+
+msgid "You do not have permission to download comments."
+msgstr "Vous n’avez pas la permission de télécharger les commentaires."
+
+msgid "You do not have permission to download terms."
+msgstr "Vous n’avez pas la permission de télécharger les termes."
+
+msgid "Failed to create CSV file."
+msgstr "Échec de la création du fichier CSV."
