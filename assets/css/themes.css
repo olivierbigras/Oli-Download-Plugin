@@ -1,0 +1,10 @@
+/**
+ * Theme card Download button.
+ *
+ * @package Oli_Download_Plugin
+ */
+
+.theme-actions .oli-dlp-download,
+.theme-overlay .theme-actions .oli-dlp-download {
+	margin-right: 5px;
+}

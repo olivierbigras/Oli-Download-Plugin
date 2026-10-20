@@ -1,0 +1,216 @@
+# Copyright (C) 2026 Olivier Bigras
+# This file is distributed under the GNU General Public License v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Oli Download Plugin 0.1.3\n"
+"Report-Msgid-Bugs-To: https://github.com/olivierbigras/Oli-Download-Plugin/issues\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-10-20 00:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: Oli Download Plugin\n"
+"X-Domain: oli-download-plugin\n"
+
+#: includes/class-oli-dlp-core.php
+msgid "Security check failed."
+msgstr ""
+
+#: includes/class-oli-dlp-core.php
+msgid "Invalid download type."
+msgstr ""
+
+#: includes/class-oli-dlp-core.php
+msgid "You do not have permission to download plugins."
+msgstr ""
+
+#: includes/class-oli-dlp-core.php
+msgid "Invalid plugin."
+msgstr ""
+
+#: includes/class-oli-dlp-core.php
+msgid "Plugin files not found."
+msgstr ""
+
+#: includes/class-oli-dlp-core.php
+msgid "You do not have permission to download themes."
+msgstr ""
+
+#: includes/class-oli-dlp-core.php
+msgid "Invalid theme."
+msgstr ""
+
+#: includes/class-oli-dlp-core.php
+msgid "Theme files not found."
+msgstr ""
+
+#: includes/class-oli-dlp-core.php
+msgid "You do not have permission to download must-use plugins."
+msgstr ""
+
+#: includes/class-oli-dlp-core.php
+msgid "Invalid must-use plugin."
+msgstr ""
+
+#: includes/class-oli-dlp-core.php
+msgid "Must-use plugin files not found."
+msgstr ""
+
+#: includes/class-oli-dlp-core.php
+msgid "You do not have permission to download drop-ins."
+msgstr ""
+
+#: includes/class-oli-dlp-core.php
+msgid "Invalid drop-in."
+msgstr ""
+
+#: includes/class-oli-dlp-core.php
+msgid "Drop-in file not found."
+msgstr ""
+
+#: includes/class-oli-dlp-core.php
+msgid "No valid plugins to download."
+msgstr ""
+
+#: includes/class-oli-dlp-zip.php
+msgid "Failed to create a temporary ZIP file."
+msgstr ""
+
+#: includes/class-oli-dlp-zip.php
+msgid "Failed to finalize the ZIP archive."
+msgstr ""
+
+#: includes/class-oli-dlp-zip.php
+msgid "Failed to create ZIP file."
+msgstr ""
+
+#: includes/class-oli-dlp-zip.php
+msgid "ZIP file not found."
+msgstr ""
+
+#: includes/class-oli-dlp-admin.php
+msgid "Download"
+msgstr ""
+
+#: includes/class-oli-dlp-admin.php
+msgid "Oli Download Plugin"
+msgstr ""
+
+#: includes/class-oli-dlp-admin.php
+msgid "You do not have permission to change these settings."
+msgstr ""
+
+#: includes/class-oli-dlp-admin.php
+msgid "You do not have permission to access this page."
+msgstr ""
+
+#: includes/class-oli-dlp-admin.php
+msgid "Settings saved."
+msgstr ""
+
+#: includes/class-oli-dlp-admin.php
+msgid "Download installed plugins and themes as ZIP files from the Plugins and Themes screens. Administrators can also download users, posts, pages, comments, and terms as CSV."
+msgstr ""
+
+#: includes/class-oli-dlp-admin.php
+msgid "Select at least one plugin to download."
+msgstr ""
+
+#: includes/class-oli-dlp-admin.php
+msgid "Upload Multiple Plugins"
+msgstr ""
+
+#: includes/class-oli-dlp-admin.php
+msgid "Custom ZIP exclusions"
+msgstr ""
+
+#: includes/class-oli-dlp-admin.php
+msgid "One pattern per line (for example vendor or *.bak). Added to the default exclusions and the oli_dlp_excluded_patterns filter."
+msgstr ""
+
+#: includes/class-oli-dlp-admin.php
+msgid "Install several plugin ZIP files in one go. Only valid WordPress plugin archives are accepted."
+msgstr ""
+
+#: includes/class-oli-dlp-admin.php
+msgid "Must-use plugins"
+msgstr ""
+
+#: includes/class-oli-dlp-admin.php
+msgid "Allow download of must-use plugins (mu-plugins)."
+msgstr ""
+
+#: includes/class-oli-dlp-admin.php
+msgid "Drop-ins"
+msgstr ""
+
+#: includes/class-oli-dlp-admin.php
+msgid "Allow download of WordPress drop-in files (object-cache.php, advanced-cache.php, and others)."
+msgstr ""
+
+#: includes/class-oli-dlp-admin.php
+msgid "Save settings"
+msgstr ""
+
+#: includes/class-oli-dlp-admin.php
+msgid "None found."
+msgstr ""
+
+#: includes/class-oli-dlp-admin.php
+msgid "Name"
+msgstr ""
+
+#: includes/class-oli-dlp-admin.php
+msgid "GitHub"
+msgstr ""
+
+#: includes/class-oli-dlp-upload.php
+msgid "%d plugin(s) installed."
+msgstr ""
+
+#: includes/class-oli-dlp-upload.php
+msgid "Some archives could not be installed. Use a valid WordPress plugin ZIP."
+msgstr ""
+
+#: includes/class-oli-dlp-upload.php
+msgid "Plugin ZIP files"
+msgstr ""
+
+#: includes/class-oli-dlp-upload.php
+msgid "Install plugins"
+msgstr ""
+
+#: includes/class-oli-dlp-upload.php
+msgid "You do not have permission to install plugins."
+msgstr ""
+
+#: includes/class-oli-dlp-export.php
+msgid "You do not have permission to export this data."
+msgstr ""
+
+#: includes/class-oli-dlp-export.php
+msgid "Failed to create CSV file."
+msgstr ""
+
+#: includes/class-oli-dlp-upload.php
+msgid "%d plugin(s) activated."
+msgstr ""
+
+#: includes/class-oli-dlp-upload.php
+msgid "Some plugins could not be activated."
+msgstr ""
+
+#: includes/class-oli-dlp-upload.php
+msgid "You do not have permission to activate plugins."
+msgstr ""
+
+#: includes/class-oli-dlp-upload.php
+msgid "Activate the plugins you just installed."
+msgstr ""
+
+#: includes/class-oli-dlp-upload.php
+msgid "Activate all"
+msgstr ""
