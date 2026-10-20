@@ -8,6 +8,7 @@ All notable changes to Oli Download Plugin are documented here.
 
 - CSV exports (users, posts, pages, comments, terms — row and bulk) now require `manage_options` on single site and `manage_network` on Multisite. Editors can no longer download drafts, comment emails, or terms with a valid nonce.
 - CSV cells that start with `=`, `+`, `-`, `@`, a tab, or CR are prefixed with an apostrophe to block spreadsheet formula injection.
+- Comment CSV exports never include the author’s email or IP, including for administrators.
 
 ### Fixed
 

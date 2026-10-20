@@ -124,3 +124,50 @@ oli_dlp_assert(
 	false !== strpos( $oli_dlp_export_src, 'user_can_export' ) && false !== strpos( $oli_dlp_export_src, 'deny_if_cannot_export' ),
 	'UI and handlers share user_can_export / deny_if_cannot_export'
 );
+
+$oli_dlp_comment_headers = Oli_DLP_Export::comment_csv_headers();
+$oli_dlp_forbidden       = Oli_DLP_Export::comment_csv_forbidden_fields();
+
+oli_dlp_assert(
+	array( 'comment_ID', 'comment_post_ID', 'comment_author', 'comment_date', 'comment_approved', 'comment_content' ) === $oli_dlp_comment_headers,
+	'Comment CSV headers omit author email and IP'
+);
+
+foreach ( $oli_dlp_forbidden as $oli_dlp_field ) {
+	oli_dlp_assert(
+		! in_array( $oli_dlp_field, $oli_dlp_comment_headers, true ),
+		'Comment CSV headers exclude ' . $oli_dlp_field
+	);
+}
+
+$oli_dlp_comment_row = Oli_DLP_Export::comment_csv_row(
+	(object) array(
+		'comment_ID'           => 9,
+		'comment_post_ID'      => 3,
+		'comment_author'       => 'Jane',
+		'comment_author_email' => 'jane@example.com',
+		'comment_author_IP'    => '203.0.113.10',
+		'comment_author_ip'    => '203.0.113.10',
+		'user_email'           => 'jane@example.com',
+		'comment_date'         => '2026-10-20 12:00:00',
+		'comment_approved'     => '1',
+		'comment_content'      => 'Hello',
+	)
+);
+
+oli_dlp_assert(
+	9 === $oli_dlp_comment_row['comment_ID'] && 'Jane' === $oli_dlp_comment_row['comment_author'] && 'Hello' === $oli_dlp_comment_row['comment_content'],
+	'Comment CSV keeps id, display name, and content'
+);
+
+foreach ( $oli_dlp_forbidden as $oli_dlp_field ) {
+	oli_dlp_assert(
+		! array_key_exists( $oli_dlp_field, $oli_dlp_comment_row ),
+		'Comment CSV row omits ' . $oli_dlp_field . ' even when present on the comment'
+	);
+}
+
+oli_dlp_assert(
+	false !== strpos( $oli_dlp_export_src, 'comment_csv_row' ) && false !== strpos( $oli_dlp_export_src, 'comment_csv_forbidden_fields' ),
+	'Comment streaming uses the privacy-safe row mapper'
+);

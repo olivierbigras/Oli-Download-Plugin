@@ -33,6 +33,7 @@ The plugin is written independently. It is not a fork of "Download Plugin" and d
 * `wp-content/uploads` and other media files
 * The WordPress database as a dump
 * User password hashes
+* Comment author emails and IP addresses (CSV exports)
 * Arbitrary paths outside the validated plugin / theme / mu-plugin / drop-in lists
 * Symbolic links (including broken links and links that point outside the source or `open_basedir`)
 
@@ -43,6 +44,7 @@ The plugin is written independently. It is not a fork of "Download Plugin" and d
 * The settings page uses the same capabilities as the plugin download actions (`activate_plugins` / `manage_network_plugins`). Theme downloads use the theme capabilities above; a user who can only switch themes cannot change MU-plugin or drop-in settings
 * Every download link carries a nonce
 * Slugs must match `[A-Za-z0-9._-]` and are then validated against `get_plugins()` / `wp_get_themes()` (and scanned MU / drop-in names); path traversal is rejected
+* CSV exports require `manage_options` (`manage_network` on Multisite). Comment CSVs omit author email and IP even for administrators
 * There are no public front-end endpoints, no external HTTP calls, and no tracking
 * Temporary ZIPs are written with `get_temp_dir()` / `wp_tempnam()` under a random `oli-dlp-` name (the pretty `slug-version.zip` name is used only in the download header). If the system temp directory is not writable, files fall back to `uploads/oli-download-plugin-tmp/`
 * `.htaccess` in the uploads fallback folder is ignored by Nginx (including Kinsta). Prefer a writable system temp directory so archives never land under the web root
@@ -103,7 +105,7 @@ Download slugs must match `[A-Za-z0-9._-]`. Paths, `..`, and other characters ar
 == Changelog ==
 
 = 0.1.3 =
-* CSV exports require manage_options / manage_network; formula injection is neutralized.
+* CSV exports require manage_options / manage_network; formula injection is neutralized; comment CSV omits author email and IP.
 * Theme card buttons work on WordPress 7.0; fputcsv() passes $escape; open_basedir warnings stay silent.
 * After a multi-plugin upload, offer Activate all (activate_plugins + nonce).
 

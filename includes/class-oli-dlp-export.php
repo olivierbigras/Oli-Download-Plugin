@@ -467,34 +467,78 @@ class Oli_DLP_Export {
 	}
 
 	/**
+	 * Comment CSV columns. Author email and IP are never exported.
+	 *
+	 * @return string[]
+	 */
+	public static function comment_csv_headers() {
+		return array(
+			'comment_ID',
+			'comment_post_ID',
+			'comment_author',
+			'comment_date',
+			'comment_approved',
+			'comment_content',
+		);
+	}
+
+	/**
+	 * Fields that must never appear in a comment CSV, including for administrators.
+	 *
+	 * @return string[]
+	 */
+	public static function comment_csv_forbidden_fields() {
+		return array(
+			'comment_author_email',
+			'comment_author_IP',
+			'comment_author_ip',
+			'user_email',
+		);
+	}
+
+	/**
+	 * Map a comment object to a CSV row without email or IP.
+	 *
+	 * @param object|array $comment Comment data.
+	 * @return array<string, mixed>
+	 */
+	public static function comment_csv_row( $comment ) {
+		$row = array();
+		foreach ( self::comment_csv_headers() as $key ) {
+			if ( is_object( $comment ) && isset( $comment->{$key} ) ) {
+				$row[ $key ] = $comment->{$key};
+			} elseif ( is_array( $comment ) && isset( $comment[ $key ] ) ) {
+				$row[ $key ] = $comment[ $key ];
+			} else {
+				$row[ $key ] = '';
+			}
+		}
+
+		foreach ( self::comment_csv_forbidden_fields() as $forbidden ) {
+			unset( $row[ $forbidden ] );
+		}
+
+		return $row;
+	}
+
+	/**
 	 * Stream comment CSV.
 	 *
 	 * @param int[]  $ids      Comment IDs.
 	 * @param string $filename Filename.
 	 */
 	private function stream_comments( $ids, $filename ) {
-		$rows = array();
+		$headers = self::comment_csv_headers();
+		$rows    = array();
 		foreach ( $ids as $id ) {
 			$comment = get_comment( $id );
 			if ( ! $comment ) {
 				continue;
 			}
-			$rows[] = array(
-				'comment_ID'           => $comment->comment_ID,
-				'comment_post_ID'      => $comment->comment_post_ID,
-				'comment_author'       => $comment->comment_author,
-				'comment_author_email' => $comment->comment_author_email,
-				'comment_date'         => $comment->comment_date,
-				'comment_approved'     => $comment->comment_approved,
-				'comment_content'      => $comment->comment_content,
-			);
+			$rows[] = self::comment_csv_row( $comment );
 		}
 
-		$this->stream_csv(
-			$filename,
-			array( 'comment_ID', 'comment_post_ID', 'comment_author', 'comment_author_email', 'comment_date', 'comment_approved', 'comment_content' ),
-			$rows
-		);
+		$this->stream_csv( $filename, $headers, $rows );
 	}
 
 	/**
