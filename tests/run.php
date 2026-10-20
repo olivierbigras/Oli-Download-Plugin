@@ -30,6 +30,7 @@ function oli_dlp_assert( $condition, $message ) {
 require_once dirname( __DIR__ ) . '/includes/class-oli-dlp-validator.php';
 require_once __DIR__ . '/test-slug-validation.php';
 require_once __DIR__ . '/test-exclusion-filter.php';
+require_once __DIR__ . '/test-zip-paths.php';
 
 echo PHP_EOL . $oli_dlp_passed . ' passed, ' . $oli_dlp_failed . ' failed' . PHP_EOL;
 

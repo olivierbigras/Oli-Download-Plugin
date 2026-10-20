@@ -15,27 +15,45 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Oli_DLP_Zip {
 
 	/**
-	 * Absolute temp directory with trailing slash.
+	 * Result code when ZipArchive::close() fails.
 	 *
 	 * @var string
 	 */
-	private $temp_dir;
+	const RESULT_CLOSE_FAILED = 'close';
 
 	/**
-	 * Exclusion patterns (path segments).
+	 * Exclusion patterns (path segments or globs).
 	 *
 	 * @var string[]
 	 */
 	private $excluded_patterns = array();
 
 	/**
+	 * Absolute path of the temp ZIP for this request.
+	 *
+	 * @var string
+	 */
+	private $temp_zip_file = '';
+
+	/**
+	 * Whether a shutdown cleaner is already registered.
+	 *
+	 * @var bool
+	 */
+	private $cleanup_registered = false;
+
+	/**
+	 * Current source root used by the PclZip pre-add callback.
+	 *
+	 * @var string
+	 */
+	private $pclzip_source_root = '';
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->temp_dir          = Oli_DLP_Cleanup::get_temp_dir();
 		$this->excluded_patterns = $this->get_excluded_patterns();
-
-		Oli_DLP_Cleanup::ensure_temp_dir();
 	}
 
 	/**
@@ -47,11 +65,11 @@ class Oli_DLP_Zip {
 		$patterns = Oli_DLP_Validator::default_excluded_patterns();
 
 		/**
-		 * Filter path-segment names excluded from generated ZIP archives.
+		 * Filter path-segment names and globs excluded from generated ZIP archives.
 		 *
 		 * @since 0.1.0
 		 *
-		 * @param string[] $patterns Default: .git, node_modules, .DS_Store.
+		 * @param string[] $patterns Default: .git, node_modules, .DS_Store, .env, VCS/IDE dirs, *.log, *.sql.
 		 */
 		$filtered = apply_filters( 'oli_dlp_excluded_patterns', $patterns );
 
@@ -65,11 +83,16 @@ class Oli_DLP_Zip {
 	 * @param string $filename    Download filename.
 	 */
 	public function create_and_stream( $source_path, $filename ) {
-		$zip_file = $this->temp_zip_path( $filename );
-		$result   = $this->create_zip( $source_path, $zip_file );
+		$this->prepare_runtime();
 
-		if ( ! $result ) {
-			wp_die( esc_html__( 'Failed to create ZIP file.', 'oli-download-plugin' ) );
+		$zip_file = $this->allocate_temp_zip();
+		if ( ! $zip_file ) {
+			wp_die( esc_html__( 'Failed to create a temporary ZIP file.', 'oli-download-plugin' ) );
+		}
+
+		$result = $this->create_zip( $source_path, $zip_file );
+		if ( true !== $result ) {
+			$this->fail_zip_creation( $result );
 		}
 
 		$this->stream_file( $zip_file, $filename );
@@ -82,26 +105,135 @@ class Oli_DLP_Zip {
 	 * @param string $filename Download filename.
 	 */
 	public function create_and_stream_multiple( $sources, $filename ) {
-		$zip_file = $this->temp_zip_path( $filename );
-		$result   = $this->create_zip_multiple( $sources, $zip_file );
+		$this->prepare_runtime();
 
-		if ( ! $result ) {
-			wp_die( esc_html__( 'Failed to create ZIP file.', 'oli-download-plugin' ) );
+		$zip_file = $this->allocate_temp_zip();
+		if ( ! $zip_file ) {
+			wp_die( esc_html__( 'Failed to create a temporary ZIP file.', 'oli-download-plugin' ) );
+		}
+
+		$result = $this->create_zip_multiple( $sources, $zip_file );
+		if ( true !== $result ) {
+			$this->fail_zip_creation( $result );
 		}
 
 		$this->stream_file( $zip_file, $filename );
 	}
 
 	/**
-	 * Absolute path for a temp ZIP, confined to the temp directory.
-	 *
-	 * @param string $filename Sanitized filename.
-	 * @return string
+	 * Raise limits and refuse to abort mid-stream so the temp file can be deleted.
 	 */
-	private function temp_zip_path( $filename ) {
-		$filename = sanitize_file_name( $filename );
+	private function prepare_runtime() {
+		if ( function_exists( 'wp_raise_memory_limit' ) ) {
+			wp_raise_memory_limit( 'admin' );
+		}
 
-		return $this->temp_dir . $filename;
+		if ( function_exists( 'set_time_limit' ) ) {
+			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_set_time_limit, WordPress.PHP.NoSilencedErrors.Discouraged -- large plugin archives.
+			@set_time_limit( 300 );
+		}
+
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- keep going after client disconnect so the temp ZIP is deleted.
+		@ignore_user_abort( true );
+	}
+
+	/**
+	 * Create a randomly named temp ZIP outside the web root when possible.
+	 *
+	 * The pretty download name is used only in Content-Disposition, never as
+	 * the on-disk filename.
+	 *
+	 * @return string|false Absolute path.
+	 */
+	private function allocate_temp_zip() {
+		$token = wp_generate_password( 12, false );
+
+		$path = $this->allocate_in_directory( get_temp_dir(), $token );
+		if ( $path ) {
+			$this->register_temp_cleanup( $path );
+			return $path;
+		}
+
+		Oli_DLP_Cleanup::ensure_temp_dir();
+		$path = $this->allocate_in_directory( Oli_DLP_Cleanup::get_temp_dir(), $token );
+		if ( $path ) {
+			$this->register_temp_cleanup( $path );
+			return $path;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Create a unique temp file in $dir.
+	 *
+	 * @param string $dir   Directory.
+	 * @param string $token Random token.
+	 * @return string|false
+	 */
+	private function allocate_in_directory( $dir, $token ) {
+		if ( ! is_string( $dir ) || '' === $dir ) {
+			return false;
+		}
+
+		$dir = trailingslashit( $dir );
+		if ( ! is_dir( $dir ) || ! wp_is_writable( $dir ) ) {
+			return false;
+		}
+
+		$file = wp_tempnam( 'oli-dlp-' . $token, $dir );
+		if ( ! is_string( $file ) || '' === $file || ! file_exists( $file ) ) {
+			return false;
+		}
+
+		return $file;
+	}
+
+	/**
+	 * Register shutdown deletion for the current temp ZIP.
+	 *
+	 * @param string $file Absolute path.
+	 */
+	private function register_temp_cleanup( $file ) {
+		$this->temp_zip_file = $file;
+
+		if ( $this->cleanup_registered ) {
+			return;
+		}
+
+		$this->cleanup_registered = true;
+		register_shutdown_function( array( $this, 'delete_temp_zip_file' ) );
+	}
+
+	/**
+	 * Delete the registered temp ZIP if it is still on disk.
+	 */
+	public function delete_temp_zip_file() {
+		if ( '' === $this->temp_zip_file ) {
+			return;
+		}
+
+		$file                = $this->temp_zip_file;
+		$this->temp_zip_file = '';
+
+		if ( file_exists( $file ) ) {
+			wp_delete_file( $file );
+		}
+	}
+
+	/**
+	 * Delete any leftover temp ZIP and abort with a translated error.
+	 *
+	 * @param string|bool $result create_zip() result.
+	 */
+	private function fail_zip_creation( $result ) {
+		$this->delete_temp_zip_file();
+
+		if ( self::RESULT_CLOSE_FAILED === $result ) {
+			wp_die( esc_html__( 'Failed to finalize the ZIP archive.', 'oli-download-plugin' ) );
+		}
+
+		wp_die( esc_html__( 'Failed to create ZIP file.', 'oli-download-plugin' ) );
 	}
 
 	/**
@@ -109,7 +241,7 @@ class Oli_DLP_Zip {
 	 *
 	 * @param string $source_path Source path.
 	 * @param string $zip_file    Destination ZIP.
-	 * @return bool
+	 * @return bool|string
 	 */
 	private function create_zip( $source_path, $zip_file ) {
 		if ( class_exists( 'ZipArchive' ) ) {
@@ -124,7 +256,7 @@ class Oli_DLP_Zip {
 	 *
 	 * @param array  $sources  Map of slug => path.
 	 * @param string $zip_file Destination ZIP.
-	 * @return bool
+	 * @return bool|string
 	 */
 	private function create_zip_multiple( $sources, $zip_file ) {
 		if ( class_exists( 'ZipArchive' ) ) {
@@ -139,7 +271,7 @@ class Oli_DLP_Zip {
 	 *
 	 * @param string $source_path Source path.
 	 * @param string $zip_file    Destination ZIP.
-	 * @return bool
+	 * @return bool|string
 	 */
 	private function create_zip_with_ziparchive( $source_path, $zip_file ) {
 		$zip = new ZipArchive();
@@ -156,45 +288,49 @@ class Oli_DLP_Zip {
 
 		if ( is_dir( $source_path ) ) {
 			$this->add_directory_to_zip( $zip, $source_path, basename( $source_path ) );
-		} elseif ( is_file( $source_path ) ) {
-			$zip->addFile( $source_path, basename( $source_path ) );
+		} elseif ( is_file( $source_path ) && ! is_link( $source_path ) ) {
+			$this->add_file_to_zip( $zip, $source_path, basename( $source_path ) );
 		} else {
 			$zip->close();
 			return false;
 		}
 
-		$zip->close();
+		if ( true !== $zip->close() ) {
+			return self::RESULT_CLOSE_FAILED;
+		}
 
 		return file_exists( $zip_file );
 	}
 
 	/**
-	 * Recursively add a directory, applying exclusion patterns.
+	 * Recursively add a directory without following symbolic links.
 	 *
 	 * @param ZipArchive $zip       Archive.
 	 * @param string     $dir       Absolute directory.
 	 * @param string     $base_path Path prefix inside the archive.
 	 */
 	private function add_directory_to_zip( $zip, $dir, $base_path ) {
-		$iterator = new RecursiveIteratorIterator(
-			new RecursiveDirectoryIterator( $dir, RecursiveDirectoryIterator::SKIP_DOTS ),
-			RecursiveIteratorIterator::LEAVES_ONLY
-		);
+		$entries = Oli_DLP_Validator::collect_zip_entries( $dir, $base_path, $this->excluded_patterns );
 
-		foreach ( $iterator as $file ) {
-			if ( $file->isDir() ) {
-				continue;
-			}
+		foreach ( $entries as $entry ) {
+			$this->add_file_to_zip( $zip, $entry['realpath'], $entry['relative'] );
+		}
+	}
 
-			$file_path     = $file->getRealPath();
-			$relative_path = $base_path . '/' . substr( $file_path, strlen( $dir ) + 1 );
-			$relative_path = str_replace( '\\', '/', $relative_path );
-
-			if ( Oli_DLP_Validator::should_exclude( $relative_path, $this->excluded_patterns ) ) {
-				continue;
-			}
-
-			$zip->addFile( $file_path, $relative_path );
+	/**
+	 * Add one file, swallowing ValueError / other throwables from addFile().
+	 *
+	 * @param ZipArchive $zip           Archive.
+	 * @param string     $absolute_path Real path on disk.
+	 * @param string     $relative_path Path inside the archive.
+	 */
+	private function add_file_to_zip( $zip, $absolute_path, $relative_path ) {
+		try {
+			$zip->addFile( $absolute_path, $relative_path );
+		} catch ( \ValueError $exception ) {
+			unset( $exception );
+		} catch ( \Throwable $exception ) {
+			unset( $exception );
 		}
 	}
 
@@ -203,7 +339,7 @@ class Oli_DLP_Zip {
 	 *
 	 * @param array  $sources  Map of slug => path.
 	 * @param string $zip_file Destination ZIP.
-	 * @return bool
+	 * @return bool|string
 	 */
 	private function create_zip_multiple_with_ziparchive( $sources, $zip_file ) {
 		$zip = new ZipArchive();
@@ -220,12 +356,14 @@ class Oli_DLP_Zip {
 
 			if ( is_dir( $source_path ) ) {
 				$this->add_directory_to_zip( $zip, $source_path, basename( $source_path ) );
-			} elseif ( is_file( $source_path ) ) {
-				$zip->addFile( $source_path, basename( $source_path ) );
+			} elseif ( is_file( $source_path ) && ! is_link( $source_path ) ) {
+				$this->add_file_to_zip( $zip, $source_path, basename( $source_path ) );
 			}
 		}
 
-		$zip->close();
+		if ( true !== $zip->close() ) {
+			return self::RESULT_CLOSE_FAILED;
+		}
 
 		return file_exists( $zip_file );
 	}
@@ -244,6 +382,8 @@ class Oli_DLP_Zip {
 		if ( false === $source_path ) {
 			return false;
 		}
+
+		$this->pclzip_source_root = $source_path;
 
 		$zip        = new PclZip( $zip_file );
 		$parent_dir = dirname( $source_path );
@@ -277,7 +417,8 @@ class Oli_DLP_Zip {
 				continue;
 			}
 
-			$parent_dir = dirname( $source_path );
+			$this->pclzip_source_root = $source_path;
+			$parent_dir               = dirname( $source_path );
 
 			if ( $first ) {
 				$result = $zip->create(
@@ -307,7 +448,7 @@ class Oli_DLP_Zip {
 	}
 
 	/**
-	 * PclZip pre-add callback used to skip excluded paths.
+	 * PclZip pre-add callback: skip links, escaped paths, and exclusions.
 	 *
 	 * @param int   $event Event type.
 	 * @param array $file  File header (passed by reference by PclZip).
@@ -316,7 +457,13 @@ class Oli_DLP_Zip {
 	public function pclzip_callback( $event, &$file ) {
 		unset( $event );
 
-		if ( isset( $file['filename'] ) && Oli_DLP_Validator::should_exclude( $file['filename'], $this->excluded_patterns ) ) {
+		$filename = isset( $file['filename'] ) ? $file['filename'] : '';
+		if ( Oli_DLP_Validator::should_skip_source_file( $filename, $this->pclzip_source_root ) ) {
+			return 0;
+		}
+
+		$stored = isset( $file['stored_filename'] ) ? $file['stored_filename'] : $filename;
+		if ( Oli_DLP_Validator::should_exclude( $stored, $this->excluded_patterns ) ) {
 			return 0;
 		}
 
@@ -327,10 +474,11 @@ class Oli_DLP_Zip {
 	 * Stream a ZIP and delete the temp file afterwards.
 	 *
 	 * @param string $file     Absolute path.
-	 * @param string $filename Download filename.
+	 * @param string $filename Download filename (Content-Disposition only).
 	 */
 	private function stream_file( $file, $filename ) {
 		if ( ! file_exists( $file ) ) {
+			$this->delete_temp_zip_file();
 			wp_die( esc_html__( 'ZIP file not found.', 'oli-download-plugin' ) );
 		}
 
@@ -361,7 +509,7 @@ class Oli_DLP_Zip {
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile -- streaming a temp ZIP to the browser.
 		readfile( $file );
 
-		wp_delete_file( $file );
+		$this->delete_temp_zip_file();
 		exit;
 	}
 }

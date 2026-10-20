@@ -127,21 +127,40 @@ class Oli_DLP_Cleanup {
 	}
 
 	/**
-	 * Remove ZIP files; keep protection files.
+	 * Remove leftover temp archives; keep protection files.
 	 */
 	public static function delete_temp_zips() {
-		$dir = self::get_temp_dir();
+		self::delete_matching_files( self::get_temp_dir(), array( '*.zip', 'oli-dlp-*.tmp' ) );
+
+		if ( function_exists( 'get_temp_dir' ) ) {
+			self::delete_matching_files(
+				trailingslashit( get_temp_dir() ),
+				array( 'oli-dlp-*.tmp', 'oli-dlp-*.zip' )
+			);
+		}
+	}
+
+	/**
+	 * Delete files matching the given globs in one directory.
+	 *
+	 * @param string   $dir      Directory with trailing slash.
+	 * @param string[] $patterns glob() patterns relative to $dir.
+	 */
+	private static function delete_matching_files( $dir, $patterns ) {
 		if ( '' === $dir || ! is_dir( $dir ) ) {
 			return;
 		}
 
-		$files = glob( $dir . '*.zip' );
-		if ( ! is_array( $files ) ) {
-			return;
+		$files = array();
+		foreach ( $patterns as $pattern ) {
+			$found = glob( $dir . $pattern );
+			if ( is_array( $found ) ) {
+				$files = array_merge( $files, $found );
+			}
 		}
 
 		foreach ( $files as $file ) {
-			if ( is_file( $file ) ) {
+			if ( is_string( $file ) && is_file( $file ) ) {
 				wp_delete_file( $file );
 			}
 		}

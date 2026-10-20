@@ -8,8 +8,8 @@
 $oli_dlp_defaults = Oli_DLP_Validator::default_excluded_patterns();
 
 oli_dlp_assert(
-	array( '.git', 'node_modules', '.DS_Store' ) === $oli_dlp_defaults,
-	'Default exclusions are .git, node_modules, and .DS_Store'
+	array( '.git', 'node_modules', '.DS_Store', '.env', '.svn', '.hg', '.idea', '.vscode', '*.log', '*.sql' ) === $oli_dlp_defaults,
+	'Default exclusions include VCS/IDE dirs, .env, *.log, and *.sql'
 );
 
 oli_dlp_assert(
@@ -28,6 +28,41 @@ oli_dlp_assert(
 );
 
 oli_dlp_assert(
+	true === Oli_DLP_Validator::should_exclude( 'akismet/.env', $oli_dlp_defaults ),
+	'.env file is excluded'
+);
+
+oli_dlp_assert(
+	true === Oli_DLP_Validator::should_exclude( 'akismet/.svn/entries', $oli_dlp_defaults ),
+	'.svn directory segment is excluded'
+);
+
+oli_dlp_assert(
+	true === Oli_DLP_Validator::should_exclude( 'akismet/.hg/store', $oli_dlp_defaults ),
+	'.hg directory segment is excluded'
+);
+
+oli_dlp_assert(
+	true === Oli_DLP_Validator::should_exclude( 'akismet/.idea/workspace.xml', $oli_dlp_defaults ),
+	'.idea directory segment is excluded'
+);
+
+oli_dlp_assert(
+	true === Oli_DLP_Validator::should_exclude( 'akismet/.vscode/settings.json', $oli_dlp_defaults ),
+	'.vscode directory segment is excluded'
+);
+
+oli_dlp_assert(
+	true === Oli_DLP_Validator::should_exclude( 'akismet/debug.log', $oli_dlp_defaults ),
+	'*.log glob excludes debug.log'
+);
+
+oli_dlp_assert(
+	true === Oli_DLP_Validator::should_exclude( 'akismet/sql/dump.sql', $oli_dlp_defaults ),
+	'*.sql glob excludes dump.sql'
+);
+
+oli_dlp_assert(
 	false === Oli_DLP_Validator::should_exclude( 'akismet/akismet.php', $oli_dlp_defaults ),
 	'Normal plugin file is not excluded'
 );
@@ -42,7 +77,17 @@ oli_dlp_assert(
 	'Partial node_modules match in a filename is not excluded'
 );
 
-$oli_dlp_filtered = $oli_dlp_defaults;
+oli_dlp_assert(
+	false === Oli_DLP_Validator::should_exclude( 'akismet/includes/logger.php', $oli_dlp_defaults ),
+	'logger.php is not matched by *.log'
+);
+
+oli_dlp_assert(
+	false === Oli_DLP_Validator::should_exclude( 'akismet/includes/class-sql.php', $oli_dlp_defaults ),
+	'class-sql.php is not matched by *.sql'
+);
+
+$oli_dlp_filtered   = $oli_dlp_defaults;
 $oli_dlp_filtered[] = 'vendor';
 
 oli_dlp_assert(
@@ -58,4 +103,14 @@ oli_dlp_assert(
 oli_dlp_assert(
 	true === Oli_DLP_Validator::should_exclude( 'theme\\node_modules\\pkg\\index.js', $oli_dlp_defaults ),
 	'Windows-style separators are normalized'
+);
+
+oli_dlp_assert(
+	true === Oli_DLP_Validator::is_glob_pattern( '*.log' ),
+	'*.log is detected as a glob pattern'
+);
+
+oli_dlp_assert(
+	false === Oli_DLP_Validator::is_glob_pattern( '.env' ),
+	'.env is not a glob pattern'
 );

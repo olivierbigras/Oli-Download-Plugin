@@ -30,12 +30,13 @@ function oli_dlp_uninstall() {
 		return;
 	}
 
-	$oli_dlp_zips = glob( $oli_dlp_dir . '*.zip' );
-	if ( is_array( $oli_dlp_zips ) ) {
-		foreach ( $oli_dlp_zips as $oli_dlp_zip ) {
-			if ( is_file( $oli_dlp_zip ) ) {
-				wp_delete_file( $oli_dlp_zip );
-			}
+	$oli_dlp_temps = array_merge(
+		(array) glob( $oli_dlp_dir . '*.zip' ),
+		(array) glob( $oli_dlp_dir . 'oli-dlp-*.tmp' )
+	);
+	foreach ( $oli_dlp_temps as $oli_dlp_zip ) {
+		if ( is_string( $oli_dlp_zip ) && is_file( $oli_dlp_zip ) ) {
+			wp_delete_file( $oli_dlp_zip );
 		}
 	}
 

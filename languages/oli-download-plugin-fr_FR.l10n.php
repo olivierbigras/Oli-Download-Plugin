@@ -9,7 +9,7 @@ return array(
 	'x-generator'       => 'Oli Download Plugin',
 	'translation-revision-date' => '2026-10-20 00:00+0000',
 	'plural-forms'      => 'nplurals=2; plural=(n > 1);',
-	'project-id-version' => 'Oli Download Plugin 0.1.0',
+	'project-id-version' => 'Oli Download Plugin 0.1.1',
 	'language'          => 'fr_FR',
 	'messages'          => array(
 		'Security check failed.' => 'Échec de la vérification de sécurité.',
@@ -27,6 +27,8 @@ return array(
 		'Invalid drop-in.'       => 'Fichier drop-in invalide.',
 		'Drop-in file not found.' => 'Fichier drop-in introuvable.',
 		'No valid plugins to download.' => 'Aucune extension valide à télécharger.',
+		'Failed to create a temporary ZIP file.' => 'Échec de la création d’un fichier ZIP temporaire.',
+		'Failed to finalize the ZIP archive.' => 'Échec de la finalisation de l’archive ZIP.',
 		'Failed to create ZIP file.' => 'Échec de la création du fichier ZIP.',
 		'ZIP file not found.'    => 'Fichier ZIP introuvable.',
 		'Download'               => 'Télécharger',

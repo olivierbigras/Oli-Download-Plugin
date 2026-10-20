@@ -2,7 +2,7 @@
 # This file is distributed under the GNU General Public License v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Oli Download Plugin 0.1.0\n"
+"Project-Id-Version: Oli Download Plugin 0.1.1\n"
 "Report-Msgid-Bugs-To: https://github.com/olivierbigras/Oli-Download-Plugin/issues\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -73,6 +73,14 @@ msgstr ""
 
 #: includes/class-oli-dlp-core.php
 msgid "No valid plugins to download."
+msgstr ""
+
+#: includes/class-oli-dlp-zip.php
+msgid "Failed to create a temporary ZIP file."
+msgstr ""
+
+#: includes/class-oli-dlp-zip.php
+msgid "Failed to finalize the ZIP archive."
 msgstr ""
 
 #: includes/class-oli-dlp-zip.php
