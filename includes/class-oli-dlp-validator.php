@@ -2,11 +2,15 @@
 /**
  * Slug validation and exclusion helpers.
  *
- * This class has no WordPress runtime dependency so unit tests can load it
- * without bootstrapping WordPress.
+ * This class has no WordPress function dependency so unit tests can load it
+ * after defining ABSPATH, without bootstrapping WordPress.
  *
  * @package Oli_Download_Plugin
  */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 if ( ! class_exists( 'Oli_DLP_Validator' ) ) {
 	/**

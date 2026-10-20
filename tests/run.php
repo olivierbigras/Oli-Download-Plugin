@@ -27,6 +27,10 @@ function oli_dlp_assert( $condition, $message ) {
 	++$oli_dlp_failed;
 }
 
+if ( ! defined( 'ABSPATH' ) ) {
+	define( 'ABSPATH', __DIR__ . '/' );
+}
+
 require_once dirname( __DIR__ ) . '/includes/class-oli-dlp-validator.php';
 require_once __DIR__ . '/test-slug-validation.php';
 require_once __DIR__ . '/test-exclusion-filter.php';
