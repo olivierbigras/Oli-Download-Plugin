@@ -88,16 +88,16 @@ class Oli_DLP_Core {
 	/**
 	 * Get a plugin option (network-aware).
 	 *
-	 * @param string $key     Option name.
-	 * @param mixed  $default Default value.
+	 * @param string $key           Option name.
+	 * @param mixed  $default_value Default value.
 	 * @return mixed
 	 */
-	public static function get_option( $key, $default = false ) {
+	public static function get_option( $key, $default_value = false ) {
 		if ( is_multisite() ) {
-			return get_site_option( $key, $default );
+			return get_site_option( $key, $default_value );
 		}
 
-		return get_option( $key, $default );
+		return get_option( $key, $default_value );
 	}
 
 	/**
@@ -123,13 +123,15 @@ class Oli_DLP_Core {
 	 * @return string
 	 */
 	public static function get_download_url( $type, $slug ) {
+		$base = is_network_admin() ? network_admin_url( 'admin.php' ) : admin_url( 'admin.php' );
+
 		return wp_nonce_url(
 			add_query_arg(
 				array(
 					'oli_dlp_download' => $slug,
 					'type'             => $type,
 				),
-				admin_url( 'admin.php' )
+				$base
 			),
 			'oli_dlp_download'
 		);
@@ -295,11 +297,16 @@ class Oli_DLP_Core {
 			wp_die( esc_html__( 'You do not have permission to download plugins.', 'oli-download-plugin' ), '', array( 'response' => 403 ) );
 		}
 
+		$nonce = isset( $_REQUEST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['_wpnonce'] ) ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'oli_dlp_download' ) && ! wp_verify_nonce( $nonce, 'bulk-plugins' ) ) {
+			wp_die( esc_html__( 'Security check failed.', 'oli-download-plugin' ), '', array( 'response' => 403 ) );
+		}
+
 		$slugs = array();
 
-		if ( isset( $_REQUEST['plugins'] ) && is_array( $_REQUEST['plugins'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- verified in handle_download or bulk handler.
+		if ( isset( $_REQUEST['plugins'] ) && is_array( $_REQUEST['plugins'] ) ) {
 			$slugs = array_map( 'sanitize_text_field', wp_unslash( $_REQUEST['plugins'] ) );
-		} elseif ( isset( $_REQUEST['checked'] ) && is_array( $_REQUEST['checked'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		} elseif ( isset( $_REQUEST['checked'] ) && is_array( $_REQUEST['checked'] ) ) {
 			$files = array_map( 'sanitize_text_field', wp_unslash( $_REQUEST['checked'] ) );
 			foreach ( $files as $plugin_file ) {
 				$slugs[] = $this->plugin_zip_slug( $plugin_file );

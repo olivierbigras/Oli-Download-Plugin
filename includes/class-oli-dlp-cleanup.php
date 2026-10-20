@@ -168,10 +168,6 @@ class Oli_DLP_Cleanup {
 			wp_delete_file( $htaccess );
 		}
 
-		if ( function_exists( 'wp_delete_file' ) ) {
-			// Folder may remain if not empty; rmdir is best-effort.
-		}
-
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir, WordPress.PHP.NoSilencedErrors.Discouraged -- best-effort removal of the empty temp folder.
 		@rmdir( $dir );
 	}

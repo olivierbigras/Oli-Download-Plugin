@@ -206,8 +206,8 @@ class Oli_DLP_Admin {
 
 		$redirect = add_query_arg(
 			array(
-				'page'             => 'oli-download-plugin',
-				'oli_dlp_updated'  => '1',
+				'page'            => 'oli-download-plugin',
+				'oli_dlp_updated' => '1',
 			),
 			is_network_admin() ? network_admin_url( 'settings.php' ) : admin_url( 'options-general.php' )
 		);

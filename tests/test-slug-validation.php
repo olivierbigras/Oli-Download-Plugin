@@ -92,3 +92,34 @@ oli_dlp_assert(
 	false === Oli_DLP_Validator::match_named_file( '../wp-config.php', array( 'object-cache.php' ) ),
 	'Drop-in traversal is rejected'
 );
+
+$oli_dlp_root = sys_get_temp_dir() . '/oli-dlp-resolve-' . uniqid( '', true );
+mkdir( $oli_dlp_root );
+file_put_contents( $oli_dlp_root . '/ok.php', 'ok' );
+mkdir( $oli_dlp_root . '/sub' );
+file_put_contents( $oli_dlp_root . '/sub/a.php', 'ok' );
+
+oli_dlp_assert(
+	false !== Oli_DLP_Validator::resolve_inside( $oli_dlp_root . '/ok.php', $oli_dlp_root ),
+	'File inside the plugin root is accepted'
+);
+
+oli_dlp_assert(
+	false !== Oli_DLP_Validator::resolve_inside( $oli_dlp_root . '/sub', $oli_dlp_root ),
+	'Subdirectory inside the plugin root is accepted'
+);
+
+oli_dlp_assert(
+	false === Oli_DLP_Validator::resolve_inside( $oli_dlp_root . '/../', $oli_dlp_root ),
+	'Resolved parent directory is rejected'
+);
+
+oli_dlp_assert(
+	false === Oli_DLP_Validator::resolve_inside( $oli_dlp_root . '/missing.php', $oli_dlp_root ),
+	'Missing path is rejected'
+);
+
+unlink( $oli_dlp_root . '/sub/a.php' );
+rmdir( $oli_dlp_root . '/sub' );
+unlink( $oli_dlp_root . '/ok.php' );
+rmdir( $oli_dlp_root );

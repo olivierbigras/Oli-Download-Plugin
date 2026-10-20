@@ -336,7 +336,7 @@ class Oli_DLP_Zip {
 
 		$filename = sanitize_file_name( $filename );
 
-		// phpcs:disable WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.IniSet.Risky -- prevent gzip/buffer from corrupting the ZIP stream.
+		// phpcs:disable WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.IniSet.Risky, WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_apache_setenv -- prevent gzip/buffer from corrupting the ZIP stream.
 		if ( function_exists( 'apache_setenv' ) ) {
 			@apache_setenv( 'no-gzip', '1' );
 		}
