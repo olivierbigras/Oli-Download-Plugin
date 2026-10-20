@@ -1,1 +1,22 @@
-# Oli-Download-Plugin
+# Oli Download Plugin
+
+WordPress plugin that adds a **Download** link on the Plugins and Themes screens so you can ZIP an installed plugin or theme (including child themes) and save it locally.
+
+- Slug / text domain: `oli-download-plugin`
+- Author: [Olivier Bigras](https://olivierbigras.com/)
+- wordpress.org contributor: `bigrat95`
+- License: GPLv2 or later
+- Requires WordPress 6.5+, PHP 7.4+
+- Repository: https://github.com/olivierbigras/Oli-Download-Plugin
+
+See [`readme.txt`](readme.txt) for the WordPress.org listing and [`CHANGELOG.md`](CHANGELOG.md) for releases.
+
+## Development
+
+```bash
+composer install
+composer phpcs
+composer test
+```
+
+GitHub Actions runs `php -l`, PHPCS (WordPress standard), and the unit tests on every push.

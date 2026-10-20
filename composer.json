@@ -1,0 +1,31 @@
+{
+  "name": "olivierbigras/oli-download-plugin",
+  "description": "Download installed WordPress plugins and themes as ZIP files from the admin.",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "authors": [
+    {
+      "name": "Olivier Bigras",
+      "homepage": "https://olivierbigras.com/"
+    }
+  ],
+  "homepage": "https://github.com/olivierbigras/Oli-Download-Plugin",
+  "require": {
+    "php": ">=7.4"
+  },
+  "require-dev": {
+    "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+    "wp-coding-standards/wpcs": "^3.1"
+  },
+  "scripts": {
+    "phpcs": "phpcs",
+    "phpcbf": "phpcbf",
+    "test": "php tests/run.php"
+  },
+  "config": {
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    },
+    "sort-packages": true
+  }
+}

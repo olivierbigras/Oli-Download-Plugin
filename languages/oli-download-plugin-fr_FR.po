@@ -1,0 +1,109 @@
+# Copyright (C) 2026 Olivier Bigras
+# This file is distributed under the GNU General Public License v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Oli Download Plugin 0.1.0\n"
+"Report-Msgid-Bugs-To: https://github.com/olivierbigras/Oli-Download-Plugin/issues\n"
+"Last-Translator: Olivier Bigras <https://olivierbigras.com/>\n"
+"Language-Team: French\n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-10-20 00:00+0000\n"
+"PO-Revision-Date: 2026-10-20 00:00+0000\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Domain: oli-download-plugin\n"
+
+msgid "Security check failed."
+msgstr "Échec de la vérification de sécurité."
+
+msgid "Invalid download type."
+msgstr "Type de téléchargement invalide."
+
+msgid "You do not have permission to download plugins."
+msgstr "Vous n’avez pas la permission de télécharger des extensions."
+
+msgid "Invalid plugin."
+msgstr "Extension invalide."
+
+msgid "Plugin files not found."
+msgstr "Fichiers de l’extension introuvables."
+
+msgid "You do not have permission to download themes."
+msgstr "Vous n’avez pas la permission de télécharger des thèmes."
+
+msgid "Invalid theme."
+msgstr "Thème invalide."
+
+msgid "Theme files not found."
+msgstr "Fichiers du thème introuvables."
+
+msgid "You do not have permission to download must-use plugins."
+msgstr "Vous n’avez pas la permission de télécharger les extensions indispensables."
+
+msgid "Invalid must-use plugin."
+msgstr "Extension indispensable invalide."
+
+msgid "Must-use plugin files not found."
+msgstr "Fichiers de l’extension indispensable introuvables."
+
+msgid "You do not have permission to download drop-ins."
+msgstr "Vous n’avez pas la permission de télécharger les fichiers drop-in."
+
+msgid "Invalid drop-in."
+msgstr "Fichier drop-in invalide."
+
+msgid "Drop-in file not found."
+msgstr "Fichier drop-in introuvable."
+
+msgid "No valid plugins to download."
+msgstr "Aucune extension valide à télécharger."
+
+msgid "Failed to create ZIP file."
+msgstr "Échec de la création du fichier ZIP."
+
+msgid "ZIP file not found."
+msgstr "Fichier ZIP introuvable."
+
+msgid "Download"
+msgstr "Télécharger"
+
+msgid "Oli Download Plugin"
+msgstr "Oli Download Plugin"
+
+msgid "You do not have permission to change these settings."
+msgstr "Vous n’avez pas la permission de modifier ces réglages."
+
+msgid "You do not have permission to access this page."
+msgstr "Vous n’avez pas la permission d’accéder à cette page."
+
+msgid "Settings saved."
+msgstr "Réglages enregistrés."
+
+msgid "Download installed plugins and themes as ZIP files from the Plugins and Themes screens. Uploads and other wp-content data are never included."
+msgstr "Téléchargez les extensions et thèmes installés en fichiers ZIP depuis les écrans Extensions et Thèmes. Le dossier uploads et les autres données de wp-content ne sont jamais inclus."
+
+msgid "Must-use plugins"
+msgstr "Extensions indispensables"
+
+msgid "Allow download of must-use plugins (mu-plugins)."
+msgstr "Autoriser le téléchargement des extensions indispensables (mu-plugins)."
+
+msgid "Drop-ins"
+msgstr "Drop-ins"
+
+msgid "Allow download of WordPress drop-in files (object-cache.php, advanced-cache.php, and others)."
+msgstr "Autoriser le téléchargement des fichiers drop-in WordPress (object-cache.php, advanced-cache.php et autres)."
+
+msgid "Save settings"
+msgstr "Enregistrer les réglages"
+
+msgid "None found."
+msgstr "Aucun élément trouvé."
+
+msgid "Name"
+msgstr "Nom"
+
+msgid "GitHub"
+msgstr "GitHub"
