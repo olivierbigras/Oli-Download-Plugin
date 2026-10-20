@@ -32,9 +32,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once dirname( __DIR__ ) . '/includes/class-oli-dlp-validator.php';
+require_once dirname( __DIR__ ) . '/includes/class-oli-dlp-csv.php';
+require_once dirname( __DIR__ ) . '/includes/class-oli-dlp-export.php';
+require_once dirname( __DIR__ ) . '/includes/class-oli-dlp-upload.php';
 require_once __DIR__ . '/test-slug-validation.php';
 require_once __DIR__ . '/test-exclusion-filter.php';
 require_once __DIR__ . '/test-zip-paths.php';
+require_once __DIR__ . '/test-csv.php';
+require_once __DIR__ . '/test-export-caps.php';
+require_once __DIR__ . '/test-upload-activate.php';
 
 echo PHP_EOL . $oli_dlp_passed . ' passed, ' . $oli_dlp_failed . ' failed' . PHP_EOL;
 

@@ -23,4 +23,4 @@ composer test
 
 GitHub Actions runs `php -l`, PHPCS (WordPress standard), and the unit tests on PHP 7.4 / 8.2 / 8.3 / 8.4, plus Plugin Check.
 
-The free [Download Plugin](https://wordpress.org/plugins/download-plugin/) listing is the UX reference (buttons, labels, downloadable items). This plugin is an independent reimplementation: rebranded, hardened, and without that plugin’s promotional UI.
+The free [Download Plugin](https://wordpress.org/plugins/download-plugin/) listing is the UX reference (buttons, labels, downloadable items). This plugin is an independent reimplementation: rebranded, hardened, and without that plugin’s promotional UI. CSV exports require `manage_options` (`manage_network` on Multisite).

@@ -5,7 +5,7 @@ Tags: download, plugins, themes, zip, backup
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.1.2
+Stable tag: 0.1.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -25,7 +25,7 @@ The plugin is written independently. It is not a fork of "Download Plugin" and d
 * Installed themes, including child themes (the child folder only), from each theme card and the details overlay
 * Several plugin ZIPs uploaded and installed at once
 * Must-use plugins and drop-ins, when you enable those options
-* Users, posts, pages, custom post types, comments, and terms as CSV (row and bulk Download)
+* Users, posts, pages, custom post types, comments, and terms as CSV (row and bulk Download; administrators only)
 * The same ZIP actions from Multisite network admin
 
 = What is never included =
@@ -102,6 +102,11 @@ Download slugs must match `[A-Za-z0-9._-]`. Paths, `..`, and other characters ar
 
 == Changelog ==
 
+= 0.1.3 =
+* CSV exports require manage_options / manage_network; formula injection is neutralized.
+* Theme card buttons work on WordPress 7.0; fputcsv() passes $escape; open_basedir warnings stay silent.
+* After a multi-plugin upload, offer Activate all (activate_plugins + nonce).
+
 = 0.1.2 =
 * Fix theme overlay freeze and encoded nonce URLs.
 * Ignore open_basedir-escaping symlinks without fatals.
@@ -119,6 +124,9 @@ Download slugs must match `[A-Za-z0-9._-]`. Paths, `..`, and other characters ar
 * Initial release.
 
 == Upgrade Notice ==
+
+= 0.1.3 =
+CSV exports are limited to administrators, theme buttons work on WP 7.0, and bulk upload can activate plugins.
 
 = 0.1.2 =
 Fixes the Themes screen freeze and open_basedir fatals; adds CSV downloads and multi-plugin upload.

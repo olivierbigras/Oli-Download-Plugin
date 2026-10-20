@@ -209,9 +209,91 @@ if ( ! class_exists( 'Oli_DLP_Validator' ) ) {
 		}
 
 		/**
+		 * Whether $path sits inside PHP open_basedir (string prefix, no resolve).
+		 *
+		 * @param string $path Filesystem path.
+		 * @return bool
+		 */
+		public static function path_inside_open_basedir( $path ) {
+			if ( ! is_string( $path ) || '' === $path ) {
+				return false;
+			}
+
+			$basedir = ini_get( 'open_basedir' );
+			if ( ! is_string( $basedir ) || '' === $basedir ) {
+				return true;
+			}
+
+			$path = self::normalize_separators( $path );
+
+			foreach ( explode( PATH_SEPARATOR, $basedir ) as $root ) {
+				$root = self::normalize_dir( trim( (string) $root ) );
+				if ( '' === $root ) {
+					continue;
+				}
+
+				if ( $path === $root || 0 === strpos( $path, $root . DIRECTORY_SEPARATOR ) ) {
+					return true;
+				}
+
+				// Parents of an allowed root (e.g. /var when basedir is /var/www).
+				if ( 0 === strpos( $root, $path . DIRECTORY_SEPARATOR ) ) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		/**
+		 * Run $callback while swallowing only open_basedir warnings.
+		 *
+		 * Other errors are forwarded to the previous handler. Throwables
+		 * become $fallback.
+		 *
+		 * @param callable $callback Filesystem work.
+		 * @param mixed    $fallback Value if the probe throws.
+		 * @return mixed
+		 */
+		public static function with_open_basedir_guard( $callback, $fallback = false ) {
+			if ( ! is_callable( $callback ) ) {
+				return $fallback;
+			}
+
+			$previous = null;
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler -- local handler swallows only open_basedir.
+			$previous = set_error_handler(
+				static function ( $errno, $errstr, $errfile = '', $errline = 0 ) use ( &$previous ) {
+					if ( is_string( $errstr ) && false !== stripos( $errstr, 'open_basedir' ) ) {
+						return true;
+					}
+
+					if ( is_callable( $previous ) ) {
+						return (bool) call_user_func( $previous, $errno, $errstr, $errfile, $errline );
+					}
+
+					return false;
+				}
+			);
+
+			try {
+				return $callback();
+			} catch ( Exception $exception ) {
+				unset( $exception );
+				return $fallback;
+			} catch ( Throwable $exception ) {
+				unset( $exception );
+				return $fallback;
+			} finally {
+				restore_error_handler();
+			}
+		}
+
+		/**
 		 * Whether $path is a symbolic link, using lstat (does not follow).
 		 *
-		 * Any open_basedir warning or throwable is treated as "skip this path".
+		 * Paths outside open_basedir are treated as links so callers skip them
+		 * without invoking a following stat.
 		 *
 		 * @param string $path Filesystem path.
 		 * @return bool
@@ -221,16 +303,17 @@ if ( ! class_exists( 'Oli_DLP_Validator' ) ) {
 				return false;
 			}
 
-			try {
-				// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- open_basedir must not become fatal.
-				return (bool) @is_link( $path );
-			} catch ( Exception $exception ) {
-				unset( $exception );
-				return true;
-			} catch ( Throwable $exception ) {
-				unset( $exception );
+			if ( ! self::path_inside_open_basedir( $path ) ) {
 				return true;
 			}
+
+			return (bool) self::with_open_basedir_guard(
+				static function () use ( $path ) {
+					clearstatcache( true, $path );
+					return is_link( $path );
+				},
+				true
+			);
 		}
 
 		/**
@@ -240,21 +323,27 @@ if ( ! class_exists( 'Oli_DLP_Validator' ) ) {
 		 * @return string|false
 		 */
 		public static function safe_realpath( $path ) {
-			if ( ! is_string( $path ) || '' === $path || self::path_is_link( $path ) ) {
+			if ( ! is_string( $path ) || '' === $path || self::path_is_link( $path ) || ! self::path_inside_open_basedir( $path ) ) {
 				return false;
 			}
 
-			try {
-				// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- open_basedir must not become fatal.
-				$real = @realpath( $path );
-				return is_string( $real ) ? $real : false;
-			} catch ( Exception $exception ) {
-				unset( $exception );
-				return false;
-			} catch ( Throwable $exception ) {
-				unset( $exception );
+			$real = self::with_open_basedir_guard(
+				static function () use ( $path ) {
+					$resolved = realpath( $path );
+					return is_string( $resolved ) ? $resolved : false;
+				},
+				false
+			);
+
+			if ( ! is_string( $real ) ) {
 				return false;
 			}
+
+			if ( ! self::path_inside_open_basedir( $real ) ) {
+				return false;
+			}
+
+			return $real;
 		}
 
 		/**
@@ -264,20 +353,16 @@ if ( ! class_exists( 'Oli_DLP_Validator' ) ) {
 		 * @return bool
 		 */
 		public static function safe_file_exists( $path ) {
-			if ( ! is_string( $path ) || '' === $path || self::path_is_link( $path ) ) {
+			if ( ! is_string( $path ) || '' === $path || self::path_is_link( $path ) || ! self::path_inside_open_basedir( $path ) ) {
 				return false;
 			}
 
-			try {
-				// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- open_basedir must not become fatal.
-				return (bool) @file_exists( $path );
-			} catch ( Exception $exception ) {
-				unset( $exception );
-				return false;
-			} catch ( Throwable $exception ) {
-				unset( $exception );
-				return false;
-			}
+			return (bool) self::with_open_basedir_guard(
+				static function () use ( $path ) {
+					return file_exists( $path );
+				},
+				false
+			);
 		}
 
 		/**
@@ -287,20 +372,16 @@ if ( ! class_exists( 'Oli_DLP_Validator' ) ) {
 		 * @return bool
 		 */
 		public static function safe_is_file( $path ) {
-			if ( ! is_string( $path ) || '' === $path || self::path_is_link( $path ) ) {
+			if ( ! is_string( $path ) || '' === $path || self::path_is_link( $path ) || ! self::path_inside_open_basedir( $path ) ) {
 				return false;
 			}
 
-			try {
-				// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- open_basedir must not become fatal.
-				return (bool) @is_file( $path );
-			} catch ( Exception $exception ) {
-				unset( $exception );
-				return false;
-			} catch ( Throwable $exception ) {
-				unset( $exception );
-				return false;
-			}
+			return (bool) self::with_open_basedir_guard(
+				static function () use ( $path ) {
+					return is_file( $path );
+				},
+				false
+			);
 		}
 
 		/**
@@ -310,20 +391,16 @@ if ( ! class_exists( 'Oli_DLP_Validator' ) ) {
 		 * @return bool
 		 */
 		public static function safe_is_dir( $path ) {
-			if ( ! is_string( $path ) || '' === $path || self::path_is_link( $path ) ) {
+			if ( ! is_string( $path ) || '' === $path || self::path_is_link( $path ) || ! self::path_inside_open_basedir( $path ) ) {
 				return false;
 			}
 
-			try {
-				// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- open_basedir must not become fatal.
-				return (bool) @is_dir( $path );
-			} catch ( Exception $exception ) {
-				unset( $exception );
-				return false;
-			} catch ( Throwable $exception ) {
-				unset( $exception );
-				return false;
-			}
+			return (bool) self::with_open_basedir_guard(
+				static function () use ( $path ) {
+					return is_dir( $path );
+				},
+				false
+			);
 		}
 
 		/**
@@ -436,63 +513,72 @@ if ( ! class_exists( 'Oli_DLP_Validator' ) ) {
 				return $entries;
 			}
 
-			try {
-				$directory = new RecursiveDirectoryIterator( $dir, FilesystemIterator::SKIP_DOTS );
-				$filtered  = new RecursiveCallbackFilterIterator(
-					$directory,
-					static function ( $current ) {
+			$collected = self::with_open_basedir_guard(
+				static function () use ( $dir, $base_path, $patterns ) {
+					$found = array();
+
+					try {
+						$directory = new RecursiveDirectoryIterator( $dir, FilesystemIterator::SKIP_DOTS );
+						$filtered  = new RecursiveCallbackFilterIterator(
+							$directory,
+							static function ( $current ) {
+								try {
+									$path = $current->getPathname();
+									return ! Oli_DLP_Validator::path_is_link( $path );
+								} catch ( Exception $exception ) {
+									unset( $exception );
+									return false;
+								} catch ( Throwable $exception ) {
+									unset( $exception );
+									return false;
+								}
+							}
+						);
+						$iterator  = new RecursiveIteratorIterator( $filtered, RecursiveIteratorIterator::LEAVES_ONLY );
+					} catch ( Exception $exception ) {
+						unset( $exception );
+						return $found;
+					} catch ( Throwable $exception ) {
+						unset( $exception );
+						return $found;
+					}
+
+					foreach ( $iterator as $file ) {
 						try {
-							$path = $current->getPathname();
-							return ! Oli_DLP_Validator::path_is_link( $path );
+							$relative = self::zip_entry_relative_path( $file, $dir, $base_path );
+							if ( false === $relative ) {
+								continue;
+							}
+
+							if ( self::should_exclude( $relative, $patterns ) ) {
+								continue;
+							}
+
+							$pathname  = $file->getPathname();
+							$real_path = self::safe_realpath( $pathname );
+							if ( false === $real_path ) {
+								continue;
+							}
+
+							$found[] = array(
+								'realpath' => $real_path,
+								'relative' => $relative,
+							);
 						} catch ( Exception $exception ) {
 							unset( $exception );
-							return false;
+							continue;
 						} catch ( Throwable $exception ) {
 							unset( $exception );
-							return false;
+							continue;
 						}
 					}
-				);
-				$iterator  = new RecursiveIteratorIterator( $filtered, RecursiveIteratorIterator::LEAVES_ONLY );
-			} catch ( Exception $exception ) {
-				unset( $exception );
-				return $entries;
-			} catch ( Throwable $exception ) {
-				unset( $exception );
-				return $entries;
-			}
 
-			foreach ( $iterator as $file ) {
-				try {
-					$relative = self::zip_entry_relative_path( $file, $dir, $base_path );
-					if ( false === $relative ) {
-						continue;
-					}
+					return $found;
+				},
+				array()
+			);
 
-					if ( self::should_exclude( $relative, $patterns ) ) {
-						continue;
-					}
-
-					$pathname  = $file->getPathname();
-					$real_path = self::safe_realpath( $pathname );
-					if ( false === $real_path ) {
-						continue;
-					}
-
-					$entries[] = array(
-						'realpath' => $real_path,
-						'relative' => $relative,
-					);
-				} catch ( Exception $exception ) {
-					unset( $exception );
-					continue;
-				} catch ( Throwable $exception ) {
-					unset( $exception );
-					continue;
-				}
-			}
-
-			return $entries;
+			return is_array( $collected ) ? $collected : $entries;
 		}
 
 		/**

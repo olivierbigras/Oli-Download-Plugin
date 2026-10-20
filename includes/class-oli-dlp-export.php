@@ -69,12 +69,78 @@ class Oli_DLP_Export {
 	}
 
 	/**
+	 * CSV export types (row + bulk).
+	 *
+	 * @return string[]
+	 */
+	public static function export_types() {
+		return array( 'user', 'post', 'page', 'comment', 'term' );
+	}
+
+	/**
+	 * Capability required for every CSV export.
+	 *
+	 * @param bool|null $is_multisite Override for tests. Null uses is_multisite().
+	 * @return string
+	 */
+	public static function required_export_capability( $is_multisite = null ) {
+		if ( null === $is_multisite ) {
+			$is_multisite = function_exists( 'is_multisite' ) && is_multisite();
+		}
+
+		return $is_multisite ? 'manage_network' : 'manage_options';
+	}
+
+	/**
+	 * Whether a user with the given caps may export $type.
+	 *
+	 * Editors (edit_posts, moderate_comments, manage_categories, …) are denied.
+	 *
+	 * @param string $type         Export type.
+	 * @param bool   $is_multisite Whether the site is a network.
+	 * @param array  $user_caps    Map of cap => bool.
+	 * @return bool
+	 */
+	public static function export_allowed_for_caps( $type, $is_multisite, $user_caps ) {
+		if ( ! self::type_is_exportable( $type ) || ! is_array( $user_caps ) ) {
+			return false;
+		}
+
+		$needed = self::required_export_capability( (bool) $is_multisite );
+
+		return ! empty( $user_caps[ $needed ] );
+	}
+
+	/**
+	 * Whether $type is a supported CSV export.
+	 *
+	 * @param string $type Type key.
+	 * @return bool
+	 */
+	public static function type_is_exportable( $type ) {
+		return in_array( (string) $type, self::export_types(), true );
+	}
+
+	/**
+	 * Whether the current user may export any CSV (UI and handlers).
+	 *
+	 * @return bool
+	 */
+	public static function user_can_export() {
+		return current_user_can( self::required_export_capability() );
+	}
+
+	/**
 	 * Register the bulk Download action.
 	 *
 	 * @param array $actions Bulk actions.
 	 * @return array
 	 */
 	public function register_bulk( $actions ) {
+		if ( ! self::user_can_export() ) {
+			return $actions;
+		}
+
 		$actions['oli_dlp_export'] = __( 'Download', 'oli-download-plugin' );
 		return $actions;
 	}
@@ -87,7 +153,7 @@ class Oli_DLP_Export {
 	 * @return string[]
 	 */
 	public function user_row_actions( $actions, $user ) {
-		if ( ! current_user_can( 'list_users' ) || ! $user instanceof WP_User ) {
+		if ( ! self::user_can_export() || ! $user instanceof WP_User ) {
 			return $actions;
 		}
 
@@ -110,7 +176,7 @@ class Oli_DLP_Export {
 	 * @return string[]
 	 */
 	public function post_row_actions( $actions, $post ) {
-		if ( ! $post instanceof WP_Post || ! current_user_can( 'edit_post', $post->ID ) ) {
+		if ( ! $post instanceof WP_Post || ! self::user_can_export() ) {
 			return $actions;
 		}
 
@@ -133,7 +199,7 @@ class Oli_DLP_Export {
 	 * @return string[]
 	 */
 	public function comment_row_actions( $actions, $comment ) {
-		if ( ! current_user_can( 'moderate_comments' ) || ! $comment instanceof WP_Comment ) {
+		if ( ! self::user_can_export() || ! $comment instanceof WP_Comment ) {
 			return $actions;
 		}
 
@@ -156,7 +222,7 @@ class Oli_DLP_Export {
 	 * @return string[]
 	 */
 	public function term_row_actions( $actions, $term ) {
-		if ( ! current_user_can( 'manage_categories' ) || ! $term instanceof WP_Term ) {
+		if ( ! self::user_can_export() || ! $term instanceof WP_Term ) {
 			return $actions;
 		}
 
@@ -183,33 +249,30 @@ class Oli_DLP_Export {
 		$type = sanitize_key( wp_unslash( $_GET['oli_dlp_export'] ) );
 		$id   = isset( $_GET['id'] ) ? absint( wp_unslash( $_GET['id'] ) ) : 0;
 
+		if ( ! self::type_is_exportable( $type ) ) {
+			return;
+		}
+
 		switch ( $type ) {
 			case 'user':
 				check_admin_referer( 'oli_dlp_export_user_' . $id );
-				if ( ! current_user_can( 'list_users' ) ) {
-					wp_die( esc_html__( 'You do not have permission to download users.', 'oli-download-plugin' ), '', array( 'response' => 403 ) );
-				}
+				$this->deny_if_cannot_export();
 				$this->stream_users( array( $id ), 'user-' . $id . '.csv' );
 				break;
+			case 'page':
 			case 'post':
 				check_admin_referer( 'oli_dlp_export_post_' . $id );
-				if ( ! current_user_can( 'edit_post', $id ) ) {
-					wp_die( esc_html__( 'You do not have permission to download this item.', 'oli-download-plugin' ), '', array( 'response' => 403 ) );
-				}
+				$this->deny_if_cannot_export();
 				$this->stream_posts( array( $id ), 'post-' . $id . '.csv' );
 				break;
 			case 'comment':
 				check_admin_referer( 'oli_dlp_export_comment_' . $id );
-				if ( ! current_user_can( 'moderate_comments' ) ) {
-					wp_die( esc_html__( 'You do not have permission to download comments.', 'oli-download-plugin' ), '', array( 'response' => 403 ) );
-				}
+				$this->deny_if_cannot_export();
 				$this->stream_comments( array( $id ), 'comment-' . $id . '.csv' );
 				break;
 			case 'term':
 				check_admin_referer( 'oli_dlp_export_term_' . $id );
-				if ( ! current_user_can( 'manage_categories' ) ) {
-					wp_die( esc_html__( 'You do not have permission to download terms.', 'oli-download-plugin' ), '', array( 'response' => 403 ) );
-				}
+				$this->deny_if_cannot_export();
 				$taxonomy = isset( $_GET['taxonomy'] ) ? sanitize_key( wp_unslash( $_GET['taxonomy'] ) ) : '';
 				$this->stream_terms( array( $id ), $taxonomy, 'term-' . $id . '.csv' );
 				break;
@@ -229,9 +292,7 @@ class Oli_DLP_Export {
 			return $sendback;
 		}
 
-		if ( ! current_user_can( 'list_users' ) ) {
-			wp_die( esc_html__( 'You do not have permission to download users.', 'oli-download-plugin' ), '', array( 'response' => 403 ) );
-		}
+		$this->deny_if_cannot_export();
 
 		if ( empty( $ids ) ) {
 			return add_query_arg( 'oli_dlp_bulk_empty', '1', $sendback );
@@ -254,9 +315,11 @@ class Oli_DLP_Export {
 			return $sendback;
 		}
 
+		$this->deny_if_cannot_export();
+
 		$allowed = array();
 		foreach ( array_map( 'absint', $ids ) as $id ) {
-			if ( $id && current_user_can( 'edit_post', $id ) ) {
+			if ( $id ) {
 				$allowed[] = $id;
 			}
 		}
@@ -282,9 +345,7 @@ class Oli_DLP_Export {
 			return $sendback;
 		}
 
-		if ( ! current_user_can( 'moderate_comments' ) ) {
-			wp_die( esc_html__( 'You do not have permission to download comments.', 'oli-download-plugin' ), '', array( 'response' => 403 ) );
-		}
+		$this->deny_if_cannot_export();
 
 		if ( empty( $ids ) ) {
 			return add_query_arg( 'oli_dlp_bulk_empty', '1', $sendback );
@@ -307,9 +368,7 @@ class Oli_DLP_Export {
 			return $sendback;
 		}
 
-		if ( ! current_user_can( 'manage_categories' ) ) {
-			wp_die( esc_html__( 'You do not have permission to download terms.', 'oli-download-plugin' ), '', array( 'response' => 403 ) );
-		}
+		$this->deny_if_cannot_export();
 
 		if ( empty( $ids ) ) {
 			return add_query_arg( 'oli_dlp_bulk_empty', '1', $sendback );
@@ -318,6 +377,17 @@ class Oli_DLP_Export {
 		$taxonomy = isset( $_REQUEST['taxonomy'] ) ? sanitize_key( wp_unslash( $_REQUEST['taxonomy'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- bulk handler already verified.
 		$this->stream_terms( array_map( 'absint', $ids ), $taxonomy, 'terms.csv' );
 		return $sendback;
+	}
+
+	/**
+	 * Abort with 403 unless the user may export CSV.
+	 */
+	private function deny_if_cannot_export() {
+		if ( self::user_can_export() ) {
+			return;
+		}
+
+		wp_die( esc_html__( 'You do not have permission to export this data.', 'oli-download-plugin' ), '', array( 'response' => 403 ) );
 	}
 
 	/**
@@ -479,14 +549,14 @@ class Oli_DLP_Export {
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- CSV stream.
 		fwrite( $output, "\xEF\xBB\xBF" );
-		fputcsv( $output, $headers );
+		Oli_DLP_Csv::putcsv( $output, $headers );
 
 		foreach ( $rows as $row ) {
 			$line = array();
 			foreach ( $headers as $key ) {
 				$line[] = isset( $row[ $key ] ) ? $row[ $key ] : '';
 			}
-			fputcsv( $output, $line );
+			Oli_DLP_Csv::putcsv( $output, $line );
 		}
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- CSV stream.

@@ -3,7 +3,7 @@
  * Plugin Name:       Oli Download Plugin
  * Plugin URI:        https://github.com/olivierbigras/Oli-Download-Plugin
  * Description:       Download installed plugins, themes, and child themes as ZIP files from the WordPress admin.
- * Version:           0.1.2
+ * Version:           0.1.3
  * Requires at least: 6.5
  * Requires PHP:      7.4
  * Author:            Olivier Bigras
@@ -21,13 +21,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'OLI_DLP_VERSION', '0.1.2' );
+define( 'OLI_DLP_VERSION', '0.1.3' );
 define( 'OLI_DLP_PLUGIN_FILE', __FILE__ );
 define( 'OLI_DLP_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OLI_DLP_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'OLI_DLP_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
 require_once OLI_DLP_PLUGIN_DIR . 'includes/class-oli-dlp-validator.php';
+require_once OLI_DLP_PLUGIN_DIR . 'includes/class-oli-dlp-csv.php';
 require_once OLI_DLP_PLUGIN_DIR . 'includes/class-oli-dlp-cleanup.php';
 require_once OLI_DLP_PLUGIN_DIR . 'includes/class-oli-dlp-zip.php';
 require_once OLI_DLP_PLUGIN_DIR . 'includes/class-oli-dlp-core.php';

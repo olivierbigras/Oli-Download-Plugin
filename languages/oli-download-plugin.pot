@@ -2,7 +2,7 @@
 # This file is distributed under the GNU General Public License v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Oli Download Plugin 0.1.2\n"
+"Project-Id-Version: Oli Download Plugin 0.1.3\n"
 "Report-Msgid-Bugs-To: https://github.com/olivierbigras/Oli-Download-Plugin/issues\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -112,7 +112,7 @@ msgid "Settings saved."
 msgstr ""
 
 #: includes/class-oli-dlp-admin.php
-msgid "Download installed plugins and themes as ZIP files from the Plugins and Themes screens. A Download link also appears on users, posts, pages, comments, and custom post types (CSV)."
+msgid "Download installed plugins and themes as ZIP files from the Plugins and Themes screens. Administrators can also download users, posts, pages, comments, and terms as CSV."
 msgstr ""
 
 #: includes/class-oli-dlp-admin.php
@@ -188,21 +188,29 @@ msgid "You do not have permission to install plugins."
 msgstr ""
 
 #: includes/class-oli-dlp-export.php
-msgid "You do not have permission to download users."
-msgstr ""
-
-#: includes/class-oli-dlp-export.php
-msgid "You do not have permission to download this item."
-msgstr ""
-
-#: includes/class-oli-dlp-export.php
-msgid "You do not have permission to download comments."
-msgstr ""
-
-#: includes/class-oli-dlp-export.php
-msgid "You do not have permission to download terms."
+msgid "You do not have permission to export this data."
 msgstr ""
 
 #: includes/class-oli-dlp-export.php
 msgid "Failed to create CSV file."
+msgstr ""
+
+#: includes/class-oli-dlp-upload.php
+msgid "%d plugin(s) activated."
+msgstr ""
+
+#: includes/class-oli-dlp-upload.php
+msgid "Some plugins could not be activated."
+msgstr ""
+
+#: includes/class-oli-dlp-upload.php
+msgid "You do not have permission to activate plugins."
+msgstr ""
+
+#: includes/class-oli-dlp-upload.php
+msgid "Activate the plugins you just installed."
+msgstr ""
+
+#: includes/class-oli-dlp-upload.php
+msgid "Activate all"
 msgstr ""

@@ -2,7 +2,7 @@
 # This file is distributed under the GNU General Public License v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Oli Download Plugin 0.1.2\n"
+"Project-Id-Version: Oli Download Plugin 0.1.3\n"
 "Report-Msgid-Bugs-To: https://github.com/olivierbigras/Oli-Download-Plugin/issues\n"
 "Last-Translator: Olivier Bigras <https://olivierbigras.com/>\n"
 "Language-Team: French\n"
@@ -87,8 +87,8 @@ msgstr "Vous n’avez pas la permission d’accéder à cette page."
 msgid "Settings saved."
 msgstr "Réglages enregistrés."
 
-msgid "Download installed plugins and themes as ZIP files from the Plugins and Themes screens. A Download link also appears on users, posts, pages, comments, and custom post types (CSV)."
-msgstr "Téléchargez les extensions et thèmes installés en fichiers ZIP depuis les écrans Extensions et Thèmes. Un lien Télécharger apparaît aussi sur les utilisateurs, articles, pages, commentaires et types de contenu (CSV)."
+msgid "Download installed plugins and themes as ZIP files from the Plugins and Themes screens. Administrators can also download users, posts, pages, comments, and terms as CSV."
+msgstr "Téléchargez les extensions et thèmes installés en fichiers ZIP depuis les écrans Extensions et Thèmes. Les administrateurs peuvent aussi télécharger les utilisateurs, articles, pages, commentaires et termes en CSV."
 
 msgid "Select at least one plugin to download."
 msgstr "Sélectionnez au moins une extension à télécharger."
@@ -144,17 +144,23 @@ msgstr "Installer les extensions"
 msgid "You do not have permission to install plugins."
 msgstr "Vous n’avez pas la permission d’installer des extensions."
 
-msgid "You do not have permission to download users."
-msgstr "Vous n’avez pas la permission de télécharger les utilisateurs."
-
-msgid "You do not have permission to download this item."
-msgstr "Vous n’avez pas la permission de télécharger cet élément."
-
-msgid "You do not have permission to download comments."
-msgstr "Vous n’avez pas la permission de télécharger les commentaires."
-
-msgid "You do not have permission to download terms."
-msgstr "Vous n’avez pas la permission de télécharger les termes."
+msgid "You do not have permission to export this data."
+msgstr "Vous n’avez pas la permission d’exporter ces données."
 
 msgid "Failed to create CSV file."
 msgstr "Échec de la création du fichier CSV."
+
+msgid "%d plugin(s) activated."
+msgstr "%d extension(s) activée(s)."
+
+msgid "Some plugins could not be activated."
+msgstr "Certaines extensions n’ont pas pu être activées."
+
+msgid "You do not have permission to activate plugins."
+msgstr "Vous n’avez pas la permission d’activer des extensions."
+
+msgid "Activate the plugins you just installed."
+msgstr "Activez les extensions que vous venez d’installer."
+
+msgid "Activate all"
+msgstr "Tout activer"

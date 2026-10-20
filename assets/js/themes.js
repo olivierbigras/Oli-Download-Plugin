@@ -59,12 +59,15 @@
 				return;
 			}
 
-			var $actions = $theme.children('.theme-actions');
-			if (!$actions.length || $actions.find('.oli-dlp-download').length) {
-				return;
-			}
+			// WP 7.0 nests .theme-actions one level deeper than a direct child.
+			$theme.find('.theme-actions').each(function () {
+				var $actions = $(this);
+				if ($actions.find('.oli-dlp-download').length) {
+					return;
+				}
 
-			makeButton(slug).prependTo($actions);
+				makeButton(slug).prependTo($actions);
+			});
 		});
 	}
 

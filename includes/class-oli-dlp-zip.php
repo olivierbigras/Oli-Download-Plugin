@@ -284,15 +284,15 @@ class Oli_DLP_Zip {
 			return false;
 		}
 
-		$source_path = realpath( $source_path );
+		$source_path = Oli_DLP_Validator::safe_realpath( $source_path );
 		if ( false === $source_path ) {
 			$zip->close();
 			return false;
 		}
 
-		if ( is_dir( $source_path ) ) {
+		if ( Oli_DLP_Validator::safe_is_dir( $source_path ) ) {
 			$this->add_directory_to_zip( $zip, $source_path, basename( $source_path ) );
-		} elseif ( is_file( $source_path ) && ! is_link( $source_path ) ) {
+		} elseif ( Oli_DLP_Validator::safe_is_file( $source_path ) ) {
 			$this->add_file_to_zip( $zip, $source_path, basename( $source_path ) );
 		} else {
 			$zip->close();
@@ -353,14 +353,14 @@ class Oli_DLP_Zip {
 		}
 
 		foreach ( $sources as $source_path ) {
-			$source_path = realpath( $source_path );
+			$source_path = Oli_DLP_Validator::safe_realpath( $source_path );
 			if ( false === $source_path ) {
 				continue;
 			}
 
-			if ( is_dir( $source_path ) ) {
+			if ( Oli_DLP_Validator::safe_is_dir( $source_path ) ) {
 				$this->add_directory_to_zip( $zip, $source_path, basename( $source_path ) );
-			} elseif ( is_file( $source_path ) && ! is_link( $source_path ) ) {
+			} elseif ( Oli_DLP_Validator::safe_is_file( $source_path ) ) {
 				$this->add_file_to_zip( $zip, $source_path, basename( $source_path ) );
 			}
 		}
@@ -382,7 +382,7 @@ class Oli_DLP_Zip {
 	private function create_zip_with_pclzip( $source_path, $zip_file ) {
 		require_once ABSPATH . 'wp-admin/includes/class-pclzip.php';
 
-		$source_path = realpath( $source_path );
+		$source_path = Oli_DLP_Validator::safe_realpath( $source_path );
 		if ( false === $source_path ) {
 			return false;
 		}
@@ -391,15 +391,21 @@ class Oli_DLP_Zip {
 
 		$zip        = new PclZip( $zip_file );
 		$parent_dir = dirname( $source_path );
-		$result     = $zip->create(
-			$source_path,
-			PCLZIP_OPT_REMOVE_PATH,
-			$parent_dir,
-			PCLZIP_CB_PRE_ADD,
-			array( $this, 'pclzip_callback' )
+		$self       = $this;
+		$result     = Oli_DLP_Validator::with_open_basedir_guard(
+			static function () use ( $zip, $source_path, $parent_dir, $self ) {
+				return $zip->create(
+					$source_path,
+					PCLZIP_OPT_REMOVE_PATH,
+					$parent_dir,
+					PCLZIP_CB_PRE_ADD,
+					array( $self, 'pclzip_callback' )
+				);
+			},
+			false
 		);
 
-		return ( false !== $result && file_exists( $zip_file ) );
+		return ( false !== $result && Oli_DLP_Validator::safe_file_exists( $zip_file ) );
 	}
 
 	/**
@@ -416,30 +422,41 @@ class Oli_DLP_Zip {
 		$first = true;
 
 		foreach ( $sources as $source_path ) {
-			$source_path = realpath( $source_path );
+			$source_path = Oli_DLP_Validator::safe_realpath( $source_path );
 			if ( false === $source_path ) {
 				continue;
 			}
 
 			$this->pclzip_source_root = $source_path;
 			$parent_dir               = dirname( $source_path );
+			$self                     = $this;
 
 			if ( $first ) {
-				$result = $zip->create(
-					$source_path,
-					PCLZIP_OPT_REMOVE_PATH,
-					$parent_dir,
-					PCLZIP_CB_PRE_ADD,
-					array( $this, 'pclzip_callback' )
+				$result = Oli_DLP_Validator::with_open_basedir_guard(
+					static function () use ( $zip, $source_path, $parent_dir, $self ) {
+						return $zip->create(
+							$source_path,
+							PCLZIP_OPT_REMOVE_PATH,
+							$parent_dir,
+							PCLZIP_CB_PRE_ADD,
+							array( $self, 'pclzip_callback' )
+						);
+					},
+					false
 				);
 				$first  = false;
 			} else {
-				$result = $zip->add(
-					$source_path,
-					PCLZIP_OPT_REMOVE_PATH,
-					$parent_dir,
-					PCLZIP_CB_PRE_ADD,
-					array( $this, 'pclzip_callback' )
+				$result = Oli_DLP_Validator::with_open_basedir_guard(
+					static function () use ( $zip, $source_path, $parent_dir, $self ) {
+						return $zip->add(
+							$source_path,
+							PCLZIP_OPT_REMOVE_PATH,
+							$parent_dir,
+							PCLZIP_CB_PRE_ADD,
+							array( $self, 'pclzip_callback' )
+						);
+					},
+					false
 				);
 			}
 
@@ -448,7 +465,7 @@ class Oli_DLP_Zip {
 			}
 		}
 
-		return file_exists( $zip_file );
+		return Oli_DLP_Validator::safe_file_exists( $zip_file );
 	}
 
 	/**

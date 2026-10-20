@@ -2,6 +2,23 @@
 
 All notable changes to Oli Download Plugin are documented here.
 
+## 0.1.3 — 2026-10-20
+
+### Security
+
+- CSV exports (users, posts, pages, comments, terms — row and bulk) now require `manage_options` on single site and `manage_network` on Multisite. Editors can no longer download drafts, comment emails, or terms with a valid nonce.
+- CSV cells that start with `=`, `+`, `-`, `@`, a tab, or CR are prefixed with an apostrophe to block spreadsheet formula injection.
+
+### Fixed
+
+- Theme card Download buttons use `$theme.find('.theme-actions')` so they appear on WordPress 7.0, where the actions bar is nested. The overlay observer still pauses during inject.
+- `fputcsv()` is called with an explicit `$escape` argument (empty string on PHP 7.4+).
+- Remaining `open_basedir` warnings on escaping symlinks are swallowed by a local error handler that still forwards every other error. Paths outside `open_basedir` are skipped before `realpath()` / `is_file()` / `is_dir()`.
+
+### Added
+
+- After a multi-plugin upload, an **Activate all** form is offered (`activate_plugins` / `manage_network_plugins`, nonce `oli_dlp_activate_plugins`).
+
 ## 0.1.2 — 2026-10-20
 
 ### Fixed

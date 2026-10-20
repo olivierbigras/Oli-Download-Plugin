@@ -191,6 +191,80 @@ oli_dlp_assert(
 	'safe_realpath() returns false for a broken link without throwing'
 );
 
+$oli_dlp_warning_log = array();
+$oli_dlp_prev        = set_error_handler(
+	static function ( $errno, $errstr ) use ( &$oli_dlp_warning_log ) {
+		unset( $errno );
+		$oli_dlp_warning_log[] = $errstr;
+		return true;
+	}
+);
+
+if ( file_exists( '/etc/hostname' ) ) {
+	@symlink( '/etc/hostname', $oli_dlp_dir . '/outside-etc-warn' );
+	Oli_DLP_Validator::path_is_link( $oli_dlp_dir . '/outside-etc-warn' );
+	Oli_DLP_Validator::zip_entry_relative_path( new SplFileInfo( $oli_dlp_dir . '/outside-etc-warn' ), $oli_dlp_dir, 'name' );
+	Oli_DLP_Validator::should_skip_source_file( $oli_dlp_dir . '/outside-etc-warn', $oli_dlp_dir );
+	Oli_DLP_Validator::collect_zip_entries( $oli_dlp_dir, 'name' );
+	Oli_DLP_Validator::safe_realpath( '/etc/hostname' );
+	Oli_DLP_Validator::safe_is_file( '/etc/hostname' );
+	@unlink( $oli_dlp_dir . '/outside-etc-warn' );
+}
+
+$oli_dlp_open_basedir_seen = false;
+foreach ( $oli_dlp_warning_log as $oli_dlp_warning ) {
+	if ( false !== stripos( $oli_dlp_warning, 'open_basedir' ) ) {
+		$oli_dlp_open_basedir_seen = true;
+	}
+}
+
+if ( is_callable( $oli_dlp_prev ) ) {
+	set_error_handler( $oli_dlp_prev );
+} else {
+	restore_error_handler();
+}
+
+oli_dlp_assert(
+	false === $oli_dlp_open_basedir_seen,
+	'ZIP helpers do not emit open_basedir warnings'
+);
+
+$oli_dlp_forwarded = false;
+$oli_dlp_prev      = set_error_handler(
+	static function ( $errno, $errstr ) use ( &$oli_dlp_forwarded ) {
+		unset( $errno );
+		if ( false !== strpos( $errstr, 'oli-dlp-test-warning' ) ) {
+			$oli_dlp_forwarded = true;
+			return true;
+		}
+		return false;
+	}
+);
+
+Oli_DLP_Validator::with_open_basedir_guard(
+	static function () {
+		trigger_error( 'oli-dlp-test-warning', E_USER_WARNING ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_trigger_error -- test that other errors are forwarded.
+		return true;
+	},
+	false
+);
+
+if ( is_callable( $oli_dlp_prev ) ) {
+	set_error_handler( $oli_dlp_prev );
+} else {
+	restore_error_handler();
+}
+
+oli_dlp_assert(
+	true === $oli_dlp_forwarded,
+	'open_basedir guard forwards unrelated warnings to the previous handler'
+);
+
+oli_dlp_assert(
+	false === Oli_DLP_Validator::path_inside_open_basedir( '' ),
+	'Empty path is not inside open_basedir'
+);
+
 @unlink( $oli_dlp_dir . '/broken-link' );
 @unlink( $oli_dlp_dir . '/escape.php' );
 @unlink( $oli_dlp_dir . '/includes/class-foo.php' );

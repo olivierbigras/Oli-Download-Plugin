@@ -281,7 +281,7 @@ class Oli_DLP_Admin {
 		?>
 		<div class="wrap">
 			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
-			<p><?php esc_html_e( 'Download installed plugins and themes as ZIP files from the Plugins and Themes screens. A Download link also appears on users, posts, pages, comments, and custom post types (CSV).', 'oli-download-plugin' ); ?></p>
+			<p><?php esc_html_e( 'Download installed plugins and themes as ZIP files from the Plugins and Themes screens. Administrators can also download users, posts, pages, comments, and terms as CSV.', 'oli-download-plugin' ); ?></p>
 
 			<form method="post">
 				<?php wp_nonce_field( 'oli_dlp_save_settings' ); ?>
