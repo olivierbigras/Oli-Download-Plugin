@@ -2,6 +2,12 @@
 
 All notable changes to Oli Download Plugin are documented here.
 
+## 0.1.5 — 2026-10-21
+
+### Packaging
+
+- Exclude development files from the distributable ZIP via `.distignore` and `.gitattributes` `export-ignore` (`tests/`, `bin/`, `scripts/`, `.github/`, PHPCS/PHPUnit configs, Composer/npm manifests, `node_modules/`, Git metadata, and internal Markdown). `readme.txt` stays in the archive.
+
 ## 0.1.4 — 2026-10-21
 
 ### Documentation

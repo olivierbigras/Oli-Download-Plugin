@@ -1,0 +1,17 @@
+# Development and packaging files excluded from the wordpress.org / distributable ZIP.
+# Keep readme.txt (WordPress.org listing). Internal Markdown is omitted.
+
+/tests
+/bin
+/scripts
+/.github
+/node_modules
+phpcs.xml*
+phpunit.xml*
+composer.json
+composer.lock
+package*.json
+.gitignore
+.distignore
+.gitattributes
+*.md
