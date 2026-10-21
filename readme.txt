@@ -5,7 +5,7 @@ Tags: download, plugins, themes, zip, backup
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.1.3
+Stable tag: 0.1.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -61,6 +61,25 @@ The plugin is written independently. It is not a fork of "Download Plugin" and d
 
 `oli_dlp_excluded_patterns` — array of path-segment names or glob patterns to omit from generated archives. Custom lines from the Download screen are merged in first.
 
+== Privacy ==
+
+This plugin does not collect data, send requests, emails or telemetry.
+
+== External services ==
+
+This plugin does not contact external services. ZIP archives and CSV exports are built on your WordPress server and streamed to the signed-in administrator who requested them. There is no telemetry, no license check, no CDN, and no remote font, map, captcha, spreadsheet, or payment integration.
+
+The plugin never sends plugin files, theme files, CSV rows, options, emails, IP addresses, or other site data to a remote host. In particular it does not call olivierbigras.com, PayPal, Google (including Fonts and reCAPTCHA), Cloudflare Turnstile, Carto, Leaflet, Google Sheets, or Adobe Typekit.
+
+Temporary ZIP files stay on the server (`get_temp_dir()` or `uploads/oli-download-plugin-tmp/`) until they are downloaded and deleted.
+
+= Optional links a person may open =
+
+The Donate link and the GitHub repository link are ordinary clickable hyperlinks. The plugin does not request them in the background. A click is initiated by the visitor's browser and sends only what the browser sends for any page visit (typically the destination URL and standard request headers). No WordPress site data is appended.
+
+* Author site / Donate link: [https://olivierbigras.com/](https://olivierbigras.com/) — ordinary clickable link to the public author page.
+* Source repository (Plugins screen meta link): [https://github.com/olivierbigras/Oli-Download-Plugin](https://github.com/olivierbigras/Oli-Download-Plugin) — ordinary clickable link. [GitHub Terms of Service](https://docs.github.com/site-policy/github-terms/github-terms-of-service) — [GitHub Privacy Statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement)
+
 == Installation ==
 
 1. Upload the `oli-download-plugin` folder to `/wp-content/plugins/`, or install the ZIP from Plugins → Add New → Upload.
@@ -102,7 +121,16 @@ Download slugs must match `[A-Za-z0-9._-]`. Paths, `..`, and other characters ar
 
 `.htaccess` deny rules do not apply on Nginx. The plugin writes archives to `get_temp_dir()` with a random name whenever that directory is writable. The uploads fallback is a last resort; keep PHP's temp directory writable so those files stay outside the web root.
 
+= Does this plugin call external services? =
+
+No. All ZIP and CSV work runs on your server. See **Privacy** and **External services**. Donate and GitHub are ordinary clickable links only.
+
 == Changelog ==
+
+= 0.1.4 =
+* Document the External services policy: no remote APIs, CDNs, or telemetry; Donate and GitHub are ordinary clickable links only.
+* Add a Privacy section: the plugin does not collect data, send requests, emails or telemetry.
+* Move the Add Plugins “Upload Multiple Plugins” spacing into an enqueued stylesheet (no inline CSS).
 
 = 0.1.3 =
 * CSV exports require manage_options / manage_network; formula injection is neutralized; comment CSV omits author email and IP.
@@ -126,6 +154,9 @@ Download slugs must match `[A-Za-z0-9._-]`. Paths, `..`, and other characters ar
 * Initial release.
 
 == Upgrade Notice ==
+
+= 0.1.4 =
+Documents Privacy and that the plugin does not contact external services. No download behavior change.
 
 = 0.1.3 =
 CSV exports are limited to administrators, theme buttons work on WP 7.0, and bulk upload can activate plugins.

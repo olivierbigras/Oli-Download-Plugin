@@ -1,0 +1,9 @@
+/**
+ * Add Plugins screen: Upload Multiple Plugins action spacing.
+ *
+ * @package Oli_Download_Plugin
+ */
+
+.oli-dlp-upload-action {
+	margin: 0 0 8px;
+}

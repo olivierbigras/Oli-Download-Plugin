@@ -9,7 +9,7 @@ return array(
 	'x-generator'       => 'Oli Download Plugin',
 	'translation-revision-date' => '2026-10-20 00:00+0000',
 	'plural-forms'      => 'nplurals=2; plural=(n > 1);',
-	'project-id-version' => 'Oli Download Plugin 0.1.3',
+	'project-id-version' => 'Oli Download Plugin 0.1.4',
 	'language'          => 'fr_FR',
 	'messages'          => array(
 		'Security check failed.' => 'Échec de la vérification de sécurité.',
