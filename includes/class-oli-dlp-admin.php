@@ -186,7 +186,7 @@ class Oli_DLP_Admin {
 		}
 
 		$url = add_query_arg( 'page', 'oli-download-plugin', is_network_admin() ? network_admin_url( 'admin.php' ) : admin_url( 'admin.php' ) );
-		echo '<div class="wrap" style="margin:0 0 8px;"><a class="page-title-action" href="' . esc_url( $url ) . '#oli-dlp-upload">' . esc_html__( 'Upload Multiple Plugins', 'oli-download-plugin' ) . '</a></div>';
+		echo '<div class="wrap oli-dlp-upload-action"><a class="page-title-action" href="' . esc_url( $url ) . '#oli-dlp-upload">' . esc_html__( 'Upload Multiple Plugins', 'oli-download-plugin' ) . '</a></div>';
 	}
 
 	/**
@@ -366,6 +366,16 @@ class Oli_DLP_Admin {
 	 * @param string $hook Current admin page hook.
 	 */
 	public function enqueue_theme_script( $hook ) {
+		if ( 'plugin-install.php' === $hook ) {
+			wp_enqueue_style(
+				'oli-dlp-plugin-install',
+				OLI_DLP_PLUGIN_URL . 'assets/css/plugin-install.css',
+				array(),
+				OLI_DLP_VERSION
+			);
+			return;
+		}
+
 		if ( 'themes.php' !== $hook ) {
 			return;
 		}

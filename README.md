@@ -11,7 +11,7 @@ WordPress plugin that adds a **Download** link on the Plugins and Themes screens
 - `Network: true` is intentional (network-only on Multisite)
 - Download slugs must match `[A-Za-z0-9._-]`
 
-See [`readme.txt`](readme.txt) for the WordPress.org listing and [`CHANGELOG.md`](CHANGELOG.md) for releases.
+See [`readme.txt`](readme.txt) for the WordPress.org listing (including **External services**) and [`CHANGELOG.md`](CHANGELOG.md) for releases.
 
 ## Development
 

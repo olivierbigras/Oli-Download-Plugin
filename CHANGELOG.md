@@ -2,6 +2,16 @@
 
 All notable changes to Oli Download Plugin are documented here.
 
+## 0.1.4 — 2026-10-21
+
+### Documentation
+
+- Added an **External services** section to `readme.txt`. The plugin does not call remote APIs, CDNs, fonts, maps, captchas, spreadsheets, or payment processors. Optional author (`olivierbigras.com`) and GitHub links are opened only when a person clicks them; GitHub terms and privacy URLs are listed.
+
+### Changed
+
+- The Add Plugins “Upload Multiple Plugins” spacing uses an enqueued stylesheet instead of an inline `style` attribute.
+
 ## 0.1.3 — 2026-10-20
 
 ### Security
