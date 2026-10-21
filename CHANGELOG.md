@@ -6,7 +6,7 @@ All notable changes to Oli Download Plugin are documented here.
 
 ### Documentation
 
-- Added an **External services** section to `readme.txt`. The plugin does not call remote APIs, CDNs, fonts, maps, captchas, spreadsheets, or payment processors. Optional author (`olivierbigras.com`) and GitHub links are opened only when a person clicks them; GitHub terms and privacy URLs are listed.
+- Added **Privacy** and **External services** sections to `readme.txt`. The plugin does not collect data, send requests, emails or telemetry, and does not call remote APIs, CDNs, fonts, maps, captchas, spreadsheets, or payment processors. Donate (`olivierbigras.com`) and GitHub links are ordinary clickable hyperlinks only.
 
 ### Changed
 
