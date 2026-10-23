@@ -5,7 +5,7 @@ Tags: download, plugins, themes, zip, backup
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.1.4
+Stable tag: 0.1.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -127,6 +127,9 @@ No. All ZIP and CSV work runs on your server. See **Privacy** and **External ser
 
 == Changelog ==
 
+= 0.1.5 =
+* Exclude development files from the distributable ZIP (`.distignore` / `.gitattributes` export-ignore). `readme.txt` stays in the archive.
+
 = 0.1.4 =
 * Document the External services policy: no remote APIs, CDNs, or telemetry; Donate and GitHub are ordinary clickable links only.
 * Add a Privacy section: the plugin does not collect data, send requests, emails or telemetry.
@@ -154,6 +157,9 @@ No. All ZIP and CSV work runs on your server. See **Privacy** and **External ser
 * Initial release.
 
 == Upgrade Notice ==
+
+= 0.1.5 =
+Excludes development files from the distributable ZIP. No download behavior change.
 
 = 0.1.4 =
 Documents Privacy and that the plugin does not contact external services. No download behavior change.
