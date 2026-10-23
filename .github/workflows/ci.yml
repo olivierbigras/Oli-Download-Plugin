@@ -66,3 +66,7 @@ jobs:
             CHANGELOG.md
             LICENSE
             .gitignore
+            .gitattributes
+            .distignore
+            BACKLOG.md
+            README.md
